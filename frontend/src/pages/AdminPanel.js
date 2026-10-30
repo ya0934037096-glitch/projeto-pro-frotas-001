@@ -532,10 +532,10 @@ function AdminPanel() {
           <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-purple-800/5 rounded-full blur-3xl" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-900/3 rounded-full blur-3xl" />
         </div>
-        <div className="bg-[#0e0e0e] border border-[#1a1a1a] rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative z-10">
+        <div className="bg-[#0e0e0e] border border-[#1a1a1a] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative z-10">
           {/* Imagem Donatello */}
           <div className="relative">
-            <img src="/donatelo.jpg" alt="" className="w-full h-52 object-cover object-top" />
+            <img src="/donatelo.jpg" alt="" className="w-full h-72 object-cover object-top" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-transparent to-transparent" />
           </div>
 
