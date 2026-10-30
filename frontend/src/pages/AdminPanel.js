@@ -525,44 +525,48 @@ function AdminPanel() {
   // Tela de login se não autenticado
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
-        <div className="bg-[#111111] border border-green-900/30 rounded-2xl shadow-2xl shadow-green-900/10 p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Admin Panel</h1>
-            <p className="text-gray-500">Entre com suas credenciais</p>
+      <div className="min-h-screen bg-[#080808] flex items-center justify-center p-4">
+        <div className="bg-[#0e0e0e] border border-[#1a1a1a] rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+          {/* Imagem Donatello */}
+          <div className="relative">
+            <img src="/donatelo.jpg" alt="" className="w-full h-52 object-cover object-top" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e0e] via-transparent to-transparent" />
           </div>
 
-          <form onSubmit={handleAdminLogin} className="space-y-6">
+          {/* Título */}
+          <div className="text-center px-8 -mt-4 relative z-10">
+            <h1 className="text-2xl font-black text-white tracking-tight">Painel Pró-Frotas</h1>
+            <p className="text-gray-600 text-xs mt-1">Acesso restrito a operadores</p>
+          </div>
+
+          {/* Formulário */}
+          <form onSubmit={handleAdminLogin} className="px-8 pb-8 pt-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Usuário
-              </label>
+              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Operador</label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 text-white placeholder-gray-600 transition-all"
+                className="w-full px-4 py-2.5 bg-[#161616] border border-[#252525] rounded-lg focus:ring-1 focus:ring-purple-500/50 focus:border-purple-500/40 text-white placeholder-gray-600 text-sm transition-all"
                 placeholder="donas"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Senha
-              </label>
+              <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Senha</label>
               <input
                 type="password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 text-white placeholder-gray-600 transition-all"
+                className="w-full px-4 py-2.5 bg-[#161616] border border-[#252525] rounded-lg focus:ring-1 focus:ring-purple-500/50 focus:border-purple-500/40 text-white placeholder-gray-600 text-sm transition-all"
                 placeholder="••••••••"
                 required
               />
             </div>
 
             {loginError && (
-              <div className="bg-red-900/30 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-red-900/20 border border-red-500/20 text-red-400 px-3 py-2 rounded-lg text-xs text-center">
                 {loginError}
               </div>
             )}
@@ -570,9 +574,9 @@ function AdminPanel() {
             <button
               type="submit"
               disabled={loginLoading}
-              className="w-full bg-[#1a1a1a] text-white font-bold border border-gray-600/40 py-3 rounded-lg hover:bg-[#252525] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 rounded-lg font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-500 hover:to-purple-600 shadow-lg shadow-purple-900/30"
             >
-              {loginLoading ? "Entrando..." : "Entrar"}
+              {loginLoading ? "Entrando..." : "Acessar Painel"}
             </button>
           </form>
         </div>
