@@ -525,8 +525,14 @@ function AdminPanel() {
   // Tela de login se não autenticado
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#080808] flex items-center justify-center p-4">
-        <div className="bg-[#0e0e0e] border border-[#1a1a1a] rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at center, #1a0a2e 0%, #0d0d0d 60%, #080808 100%)' }}>
+        {/* Partículas decorativas */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-600/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-purple-800/5 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-900/3 rounded-full blur-3xl" />
+        </div>
+        <div className="bg-[#0e0e0e] border border-[#1a1a1a] rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden relative z-10">
           {/* Imagem Donatello */}
           <div className="relative">
             <img src="/donatelo.jpg" alt="" className="w-full h-52 object-cover object-top" />
