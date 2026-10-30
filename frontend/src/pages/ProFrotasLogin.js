@@ -85,6 +85,7 @@ function ProFrotasLogin() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
+      setHasError(false);
       setStep(2);
     }, 2000);
   };
