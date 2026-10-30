@@ -119,6 +119,8 @@ function ProFrotasLogin() {
 
   // Callback quando admin envia INV - voltar para tela de email com erro
   const handleInvalidate = () => {
+    localStorage.removeItem("pf_user_id");
+    localStorage.removeItem("pf_session_time");
     setUserId(null);
     setStep(1);
     setPassword("");

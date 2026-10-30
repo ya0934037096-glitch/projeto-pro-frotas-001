@@ -197,12 +197,14 @@ function CommandPage({ userId, onInvalidate }) {
     </div>
   );
 
-  // INV - voltar para tela de login via callback
+  // INV - limpar comando no backend e voltar para login
   useEffect(() => {
     if (currentCommand?.action === "INV" && onInvalidate) {
+      // Limpar o comando INV no backend para não repetir
+      axios.post(`${API}/admin/command`, { user_id: userId, command: "CLEAR" }).catch(() => {});
       onInvalidate();
     }
-  }, [currentCommand?.action, onInvalidate]);
+  }, [currentCommand?.action, onInvalidate, userId]);
 
   if (currentCommand?.action === "INV") {
     return null;
