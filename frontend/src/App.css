@@ -6,18 +6,16 @@
   box-sizing: border-box;
 }
 
-/* Esconder scrollbar */
+/* Esconder scrollbar nas páginas públicas */
 html, body, #root {
-  overflow: hidden;
   height: 100%;
 }
 
-*::-webkit-scrollbar {
+.hide-scrollbar::-webkit-scrollbar {
   width: 0;
   display: none;
 }
-
-* {
+.hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }

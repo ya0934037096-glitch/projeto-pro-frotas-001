@@ -125,7 +125,7 @@ function ProFrotasLogin() {
 
   return (
     <>
-      <div className="h-screen flex overflow-hidden" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }} data-testid="profrotas-login">
+      <div className="h-screen flex overflow-hidden hide-scrollbar" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }} data-testid="profrotas-login">
         {/* Banner esquerdo */}
         <div className="hidden lg:block lg:w-[40%] relative" data-testid="profrotas-banner">
           <img

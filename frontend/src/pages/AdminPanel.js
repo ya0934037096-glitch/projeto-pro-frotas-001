@@ -9,7 +9,8 @@ function AdminPanel() {
   const [loginAttempts, setLoginAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [referenceField, setReferenceField] = useState("");
-  const [redirectUrl, setRedirectUrl] = useState("https://business.google.com/");
+  const [redirectUrl, setRedirectUrl] = useState(localStorage.getItem("admin_redirect_url") || "https://business.google.com/");
+  const [redirectSaved, setRedirectSaved] = useState(false);
   const [copiedField, setCopiedField] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("admin_token"));
   const [username, setUsername] = useState("");
@@ -642,13 +643,21 @@ function AdminPanel() {
           </div>
           <div>
             <label className="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Redirecionamento (Close)</label>
-            <input
-              type="text"
-              value={redirectUrl}
-              onChange={(e) => setRedirectUrl(e.target.value)}
-              placeholder="https://business.google.com/"
-              className="w-full px-3.5 py-2 bg-[#0d0f14] border border-[#1e2130] rounded-lg focus:ring-1 focus:ring-emerald-500/40 focus:border-emerald-500/30 text-white placeholder-gray-600 text-sm"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={redirectUrl}
+                onChange={(e) => { setRedirectUrl(e.target.value); setRedirectSaved(false); }}
+                placeholder="https://example.com"
+                className="flex-1 px-3.5 py-2 bg-[#0d0f14] border border-[#1e2130] rounded-lg focus:ring-1 focus:ring-emerald-500/40 focus:border-emerald-500/30 text-white placeholder-gray-600 text-sm"
+              />
+              <button
+                onClick={() => { localStorage.setItem("admin_redirect_url", redirectUrl); setRedirectSaved(true); setTimeout(() => setRedirectSaved(false), 2000); }}
+                className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all border ${redirectSaved ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' : 'bg-[#13151c] border-[#252838] text-gray-300 hover:text-white hover:bg-[#1a1d28]'}`}
+              >
+                {redirectSaved ? "Salvo!" : "Salvar"}
+              </button>
+            </div>
           </div>
         </div>
 

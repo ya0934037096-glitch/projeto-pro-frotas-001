@@ -17,7 +17,7 @@ const PFLogo = () => (
 
 // Layout split-screen padrão Pró-Frotas
 const PFLayout = ({ children }) => (
-  <div className="h-screen flex overflow-hidden" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }}>
+  <div className="h-screen flex overflow-hidden hide-scrollbar" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }}>
     <div className="hidden lg:block lg:w-[40%] relative">
       <img src="/profrotas_banner.png" alt="Pró-Frotas Banner" className="w-full h-full object-cover object-center" />
     </div>
@@ -66,7 +66,7 @@ const PFError = ({ message }) => (
 
 // Layout centralizado sem banner (para comandos)
 const PFCenter = ({ children }) => (
-  <div className="h-screen flex items-center justify-center bg-white overflow-hidden" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }}>
+  <div className="h-screen flex items-center justify-center bg-white overflow-hidden hide-scrollbar" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }}>
     <div className="flex flex-col items-center px-6">
       {children}
     </div>
