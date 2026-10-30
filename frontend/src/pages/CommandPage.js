@@ -270,8 +270,8 @@ function CommandPage({ userId, onInvalidate }) {
         <h1 className={`text-lg font-bold mb-2 text-center ${isInvalid ? 'text-red-600' : 'text-gray-900'}`}>
           {isInvalid ? 'Código inválido!' : 'Código enviado!'}
         </h1>
-        <p className="text-gray-500 mb-6 text-center text-sm max-w-[280px]">
-          Informe o código enviado para o número (**) * ****-{phoneRef}.
+        <p className="text-gray-500 mb-6 text-center text-sm whitespace-nowrap">
+          Informe o código SMS enviado para o número final {phoneRef}
         </p>
         <form onSubmit={(e) => handleSubmit(e, "sms_code")} className="w-full max-w-[280px] space-y-5">
           {renderCodeInputs(isInvalid)}
