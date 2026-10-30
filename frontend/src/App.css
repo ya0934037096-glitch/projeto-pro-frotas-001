@@ -6,9 +6,20 @@
   box-sizing: border-box;
 }
 
-/* Esconder badge do Emergent */
-#emergent-badge {
-  display: none !important;
+/* Esconder scrollbar */
+html, body, #root {
+  overflow: hidden;
+  height: 100%;
+}
+
+*::-webkit-scrollbar {
+  width: 0;
+  display: none;
+}
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .App {

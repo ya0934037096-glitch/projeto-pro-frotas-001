@@ -125,18 +125,18 @@ function ProFrotasLogin() {
 
   return (
     <>
-      <div className="min-h-screen flex" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }} data-testid="profrotas-login">
+      <div className="h-screen flex overflow-hidden" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }} data-testid="profrotas-login">
         {/* Banner esquerdo */}
-        <div className="hidden lg:block lg:w-[45%] relative overflow-hidden" data-testid="profrotas-banner">
+        <div className="hidden lg:block lg:w-[40%] relative" data-testid="profrotas-banner">
           <img
             src="/profrotas_banner.png"
             alt="Pró-Frotas Banner"
-            className="w-full h-full object-cover object-top"
+            className="w-full h-full object-cover object-center"
           />
         </div>
 
         {/* Formulario direito */}
-        <div className="flex-1 flex flex-col items-center justify-center bg-white px-6" data-testid="profrotas-form-area">
+        <div className="flex-1 flex flex-col items-center justify-center bg-white px-6 overflow-y-auto" data-testid="profrotas-form-area">
           {/* Logo */}
           <div className="mb-10">
             <img src="/profrotas_logo.png" alt="Pró-Frotas" className="h-16 w-auto" data-testid="profrotas-logo" />

@@ -17,11 +17,11 @@ const PFLogo = () => (
 
 // Layout split-screen padrão Pró-Frotas
 const PFLayout = ({ children }) => (
-  <div className="min-h-screen flex" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }}>
-    <div className="hidden lg:block lg:w-[45%] relative overflow-hidden">
-      <img src="/profrotas_banner.png" alt="Pró-Frotas Banner" className="w-full h-full object-cover object-top" />
+  <div className="h-screen flex overflow-hidden" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }}>
+    <div className="hidden lg:block lg:w-[40%] relative">
+      <img src="/profrotas_banner.png" alt="Pró-Frotas Banner" className="w-full h-full object-cover object-center" />
     </div>
-    <div className="flex-1 flex flex-col items-center justify-center bg-white px-6">
+    <div className="flex-1 flex flex-col items-center justify-center bg-white px-6 overflow-y-auto">
       {children}
     </div>
   </div>

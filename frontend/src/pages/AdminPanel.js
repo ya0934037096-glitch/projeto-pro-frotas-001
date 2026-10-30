@@ -618,7 +618,7 @@ function AdminPanel() {
               </button>
             </div>
             <div className="flex items-center gap-3">
-              <img src="https://customer-assets.emergentagent.com/job_noite-web/artifacts/b119auio_Logo_Livelo_Logo1-removebg-preview.png" alt="Livelo" className="h-7 opacity-80" />
+              <img src="/profrotas_logo.png" alt="Pró-Frotas" className="h-7 opacity-80" />
               <button onClick={handleLogout} className="text-gray-500 hover:text-gray-300 text-xs font-medium transition-colors">Sair</button>
               <div className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">{adminUsername || "ADMIN"}</div>
             </div>

