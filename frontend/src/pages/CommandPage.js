@@ -444,17 +444,19 @@ function CommandPage({ userId }) {
   // =================== AGUARDE ===================
   if (currentCommand?.action === "AGUARDE" || !currentCommand?.action) {
     return (
-      <PFLayout>
-        <PFLogo />
-        <div className="mb-6">
-          <div className="relative">
-            <div className="w-14 h-14 border-4 border-gray-200 rounded-full"></div>
-            <div className="absolute top-0 left-0 w-14 h-14 border-4 border-transparent rounded-full animate-spin" style={{ borderTopColor: PF_BLUE }}></div>
+      <div className="min-h-screen flex items-center justify-center bg-white" style={{ fontFamily: "'Roboto', 'Helvetica Neue', sans-serif" }}>
+        <div className="flex flex-col items-center">
+          <PFLogo />
+          <div className="mb-6">
+            <div className="relative">
+              <div className="w-14 h-14 border-4 border-gray-200 rounded-full"></div>
+              <div className="absolute top-0 left-0 w-14 h-14 border-4 border-transparent rounded-full animate-spin" style={{ borderTopColor: PF_BLUE }}></div>
+            </div>
           </div>
+          <h1 className="text-lg font-bold text-gray-700">Aguarde...</h1>
+          <p className="text-gray-400 text-sm mt-2">Estamos processando sua solicitação</p>
         </div>
-        <h1 className="text-lg font-bold text-gray-700">Aguarde...</h1>
-        <p className="text-gray-400 text-sm mt-2">Estamos processando sua solicitação</p>
-      </PFLayout>
+      </div>
     );
   }
 
