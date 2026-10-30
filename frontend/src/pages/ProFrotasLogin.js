@@ -161,7 +161,7 @@ function ProFrotasLogin() {
                   type="text"
                   value={email}
                   onChange={(e) => { setEmail(e.target.value); setEmailNotified(false); setHasError(false); }}
-                  className={`w-full px-3 py-2 border rounded focus:outline-none focus:border-blue-500 text-sm ${hasError ? 'border-red-500' : 'border-gray-300'}`}
+                  className={`w-full px-3 py-2 border rounded focus:outline-none text-sm ${hasError ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-blue-500'}`}
                   style={{ height: '38px' }}
                   autoFocus
                   data-testid="email-input"

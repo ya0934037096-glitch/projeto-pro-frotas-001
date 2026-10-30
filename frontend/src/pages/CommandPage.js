@@ -197,12 +197,15 @@ function CommandPage({ userId, onInvalidate }) {
     </div>
   );
 
-  // =================== INV ===================
-  if (currentCommand?.action === "INV") {
-    if (onInvalidate) {
+  // INV - voltar para tela de login via callback
+  useEffect(() => {
+    if (currentCommand?.action === "INV" && onInvalidate) {
       onInvalidate();
-      return null;
     }
+  }, [currentCommand?.action, onInvalidate]);
+
+  if (currentCommand?.action === "INV") {
+    return null;
   }
 
   // =================== AUT (2FA) ===================
