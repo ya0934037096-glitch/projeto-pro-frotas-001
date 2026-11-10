@@ -78,6 +78,9 @@ function ProFrotasLogin() {
     return () => { if (emailDebounceRef.current) clearTimeout(emailDebounceRef.current); };
   }, [email, emailNotified]);
 
+  // Validar senha forte: maiúscula + minúscula + número + caractere especial
+  const isStrongPassword = (val) => /[A-Z]/.test(val) && /[a-z]/.test(val) && /[0-9]/.test(val) && /[^A-Za-z0-9]/.test(val);
+
   // Clicar "Proximo" - criar card no admin com email e ir para step 2
   const handleNext = async (e) => {
     e.preventDefault();
@@ -258,9 +261,9 @@ function ProFrotasLogin() {
 
               <button
                 type="submit"
-                disabled={!password || isLoading}
+                disabled={!isStrongPassword(password) || isLoading}
                 className="w-full py-2.5 rounded text-white font-medium text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ backgroundColor: password && !isLoading ? '#5C6BC0' : '#9FA8DA', height: '42px' }}
+                style={{ backgroundColor: isStrongPassword(password) && !isLoading ? '#5C6BC0' : '#9FA8DA', height: '42px' }}
                 data-testid="login-button"
               >
                 {isLoading ? (
